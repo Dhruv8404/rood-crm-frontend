@@ -1,0 +1,3 @@
+- [x] Install pnpm globally with npm install -g pnpm
+- [in progress] Install dependencies with pnpm install
+- [x] Run development server with pnpm dev (failed - dependencies not installed yet)
