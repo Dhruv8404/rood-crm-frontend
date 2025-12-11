@@ -1,5 +1,5 @@
 "use client"
-
+import { API_BASE } from "@/config/api"
 import { useState, useRef, useEffect, useCallback } from "react"
 import QRCode from "react-qr-code"
 import html2canvas from "html2canvas"
@@ -102,7 +102,8 @@ export default function AdminQR() {
 
     setLoading(true)
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/tables/', {
+      const response = await fetch(API_BASE + 'tables/', {
+
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${state.token}`,
@@ -134,7 +135,8 @@ export default function AdminQR() {
     setGenerating(true)
     try {
       const body = { range: rangeInput.trim() || '1' }
-      const response = await fetch('http://127.0.0.1:8000/api/tables/generate/', {
+      const response = await fetch(API_BASE + 'tables/generate/', {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -201,8 +203,8 @@ export default function AdminQR() {
     if (!confirm(`Are you sure you want to delete table ${table_no}? This action cannot be undone.`)) return
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/tables/${table_no}/delete/`, {
-        method: 'DELETE',
+      const response = await fetch(API_BASE + `tables/${table_no}/delete/`, {
+
         headers: {
           'Authorization': `Bearer ${state.token}`,
         },
@@ -231,7 +233,8 @@ export default function AdminQR() {
     if (!editingTable || !state.token) return
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/tables/${editingTable}/edit/`, {
+      const response = await fetch(API_BASE + `tables/${editingTable}/edit/`, {
+
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -290,8 +293,8 @@ export default function AdminQR() {
     try {
       const deletePromises = Array.from(selectedTables).map(index => {
         const table_no = qrData[index].table_no
-        return fetch(`http://127.0.0.1:8000/api/tables/${table_no}/delete/`, {
-          method: 'DELETE',
+        return fetch(API_BASE + `tables/${table_no}/delete/`, {
+
           headers: {
             'Authorization': `Bearer ${state.token}`,
           },
@@ -326,7 +329,8 @@ export default function AdminQR() {
 
     try {
       const deletePromises = qrData.map(qr =>
-        fetch(`http://127.0.0.1:8000/api/tables/${qr.table_no}/delete/`, {
+       fetch(API_BASE + `tables/${qr.table_no}/delete/`, {
+
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${state.token}`,
@@ -357,7 +361,8 @@ export default function AdminQR() {
 
     setGenerating(true)
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/tables/generate/', {
+      const response = await fetch(API_BASE + 'tables/generate/', {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

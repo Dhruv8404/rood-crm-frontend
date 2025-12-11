@@ -1,4 +1,5 @@
 "use client"
+import { API_BASE } from "@/config/api"
 
 import { useApp } from "@/context/app-context"
 import { useState, useEffect } from "react"
@@ -51,7 +52,8 @@ export default function AuthPage() {
     setLoading(true)
     setError("")
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/customer/register/', {
+      const res = await fetch(API_BASE + 'auth/customer/register/', {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, email })
@@ -82,7 +84,8 @@ export default function AuthPage() {
     setLoading(true)
     setError("")
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/customer/verify/', {
+      const res = await fetch(API_BASE + 'auth/customer/verify/', {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ otp, email })
@@ -93,7 +96,8 @@ export default function AuthPage() {
 
         // Place the pending order after login
         if (state.pendingOrder) {
-          const orderRes = await fetch('http://127.0.0.1:8000/api/orders/', {
+          const orderRes = await fetch(API_BASE + 'orders/', {
+
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

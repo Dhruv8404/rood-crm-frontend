@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Scan, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
+import { API_BASE } from "@/config/api"
 
 interface VerificationResult {
   valid: boolean
@@ -43,7 +44,8 @@ export default function ScanPage() {
   useEffect(() => {
     const fetchTables = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/tables/', {
+        const response = await fetch(`${API_BASE}tables/`, {
+
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -85,7 +87,8 @@ export default function ScanPage() {
     setVerificationResult(null)
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/tables/verify/?table=${table}&hash=${hash}`, {
+      const response = await fetch(`${API_BASE}tables/verify/?table=${table}&hash=${hash}`, {
+
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

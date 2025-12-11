@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { API_BASE } from "@/config/api"
 
 interface OrderItem {
   id: number
@@ -55,7 +56,8 @@ export default function OrderSuccessPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const unpaidResponse = await fetch(`http://localhost:8000/api/orders/current/?phone=${state.user.phone}&include_paid=false`, {
+        const unpaidResponse = await fetch(`${API_BASE}orders/current/?phone=${state.user.phone}&include_paid=false`, {
+
           headers: {
             'Authorization': `Bearer ${state.token}`
           }
@@ -64,7 +66,8 @@ export default function OrderSuccessPage() {
         if (unpaidResponse.ok) {
           const unpaidData = await unpaidResponse.json()
           if (unpaidData.error === 'No orders found') {
-            const allResponse = await fetch(`http://localhost:8000/api/orders/current/?phone=${state.user.phone}&include_paid=true`, {
+            const allResponse = await fetch(`${API_BASE}orders/current/?phone=${state.user.phone}&include_paid=true`, {
+
               headers: {
                 'Authorization': `Bearer ${state.token}`
               }
@@ -84,7 +87,8 @@ export default function OrderSuccessPage() {
             setOrder(unpaidData)
           }
         } else {
-          const allResponse = await fetch(`http://localhost:8000/api/orders/current/?phone=${state.user.phone}&include_paid=true`, {
+          const allResponse = await fetch(`${API_BASE}orders/current/?phone=${state.user.phone}&include_paid=true`, {
+
             headers: {
               'Authorization': `Bearer ${state.token}`
             }
@@ -98,7 +102,8 @@ export default function OrderSuccessPage() {
           }
         }
 
-        const historyResponse = await fetch(`http://localhost:8000/api/orders/`, {
+        const historyResponse = await fetch(`${API_BASE}orders/`, {
+
           headers: {
             'Authorization': `Bearer ${state.token}`
           }
@@ -149,7 +154,8 @@ export default function OrderSuccessPage() {
         return
       }
 
-      const createResponse = await fetch('http://localhost:8000/api/payments/create/', {
+      const createResponse = await fetch(`${API_BASE}payments/create/`, {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +180,8 @@ export default function OrderSuccessPage() {
         description: `Payment for ${orderData.orders_count} order(s)`,
         handler: async function (response: any) {
           try {
-            const verifyResponse = await fetch('http://localhost:8000/api/payments/verify/', {
+           const verifyResponse = await fetch(`${API_BASE}payments/verify/`, {
+
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

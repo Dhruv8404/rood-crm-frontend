@@ -1,5 +1,5 @@
 "use client"
-
+import { API_BASE } from "@/config/api"
 import { useEffect, useState, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useApp } from "@/context/app-context"
@@ -84,7 +84,8 @@ export default function AdminOrders() {
       const data: any = {}
       if (editTableNo !== '') data.table_no = editTableNo
       if (editItems.length > 0) data.items = editItems
-      const response = await fetch(`http://127.0.0.1:8000/api/orders/${editingOrder}/`, {
+     const response = await fetch(API_BASE + `orders/${editingOrder}/`, {
+
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +140,8 @@ export default function AdminOrders() {
     if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) return
     setDeletingOrder(orderId)
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/orders/${orderId}/`, {
+     const response = await fetch(API_BASE + `orders/${orderId}/`, {
+
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${state.token}`
@@ -160,7 +162,8 @@ export default function AdminOrders() {
   const handleBillCustomer = async (customerPhone: string) => {
     setBillingCustomer(customerPhone)
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/customers/bill/', {
+     const response = await fetch(API_BASE + 'customers/bill/', {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

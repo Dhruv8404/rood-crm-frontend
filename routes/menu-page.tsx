@@ -1,5 +1,5 @@
 "use client"
-
+import { API_BASE } from "@/config/api"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useApp } from "@/context/app-context"
@@ -76,7 +76,7 @@ export default function MenuPage() {
         table_no: state.currentTable,
       }
 
-      const response = await fetch('http://127.0.0.1:8000/api/orders/', {
+      const response = await fetch(`${API_BASE}orders/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,7 +177,8 @@ export default function MenuPage() {
       table_no: null,
     }
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/orders/', {
+      const response = await fetch(`${API_BASE}orders/`, {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

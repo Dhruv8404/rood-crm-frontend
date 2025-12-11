@@ -1,4 +1,5 @@
 "use client"
+import { API_BASE } from "@/config/api"
 
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
@@ -56,7 +57,8 @@ export default function BillingPage() {
   const handleMarkPaid = async (orderId: string) => {
     setMarkingPaid(orderId)
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/orders/${orderId}/`, {
+      const response = await fetch(API_BASE + `orders/${orderId}/`, {
+
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +81,8 @@ export default function BillingPage() {
   const handleSendBill = async (orderId: string) => {
     setSendingBill(orderId)
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/send_bill_email/`, {
+      const response = await fetch(API_BASE + `send_bill_email/`, {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 "use client"
+import { API_BASE } from "@/config/api"
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -37,8 +38,8 @@ export default function UserDetailsPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/auth/send-otp/", {
-        method: "POST",
+      const response = await fetch(`${API_BASE}auth/send-otp/`, {
+
         headers: {
           "Content-Type": "application/json",
         },
@@ -77,7 +78,8 @@ export default function UserDetailsPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/auth/customer/verify/", {
+      const response = await fetch(`${API_BASE}auth/customer/verify/`, {
+
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -108,7 +110,8 @@ export default function UserDetailsPage() {
 
     setLoading(true)
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/auth/send-otp/", {
+      const response = await fetch(`${API_BASE}auth/send-otp/`, {
+
         method: "POST",
         headers: {
           "Content-Type": "application/json",

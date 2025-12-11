@@ -33,7 +33,8 @@ export type MenuItem = {
   image: string
 }
 
-const API_BASE = 'http://localhost:8000/api/'
+import { API_BASE } from "@/config/api";
+
 
 type User = {
   role: Role

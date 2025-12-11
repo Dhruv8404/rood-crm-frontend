@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { API_BASE } from "@/config/api"   // ✅ ADDED
 
 interface OrderItem {
   id: number
@@ -38,13 +39,14 @@ export default function ChefHistory() {
 
   useEffect(() => {
     fetchOrders()
-    const interval = setInterval(fetchOrders, 30000) // Less frequent for history
+    const interval = setInterval(fetchOrders, 30000)
     return () => clearInterval(interval)
   }, [state.token])
 
+  // ✅ FIXED - USING API_BASE
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/orders/', {
+      const response = await fetch(`${API_BASE}orders/`, {
         headers: {
           'Authorization': `Bearer ${state.token}`
         }
@@ -62,9 +64,10 @@ export default function ChefHistory() {
     }
   }
 
+  // ✅ FIXED delete history API
   const deleteAllHistory = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/orders/delete-history/', {
+      const response = await fetch(`${API_BASE}orders/delete-history/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${state.token}`
@@ -72,7 +75,6 @@ export default function ChefHistory() {
       })
 
       if (response.ok) {
-        // Refresh orders after deletion
         fetchOrders()
       } else {
         console.error('Failed to delete history')
@@ -93,18 +95,11 @@ export default function ChefHistory() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending': return <Sparkles className="w-4 h-4" />
-      case 'preparing': return <Sparkles className="w-4 h-4" />
-      case 'completed': return <Sparkles className="w-4 h-4" />
-      case 'customer_paid': return <Sparkles className="w-4 h-4" />
-      case 'paid': return <Sparkles className="w-4 h-4" />
-      default: return <Sparkles className="w-4 h-4" />
-    }
-  }
+  const getStatusIcon = (status: string) => <Sparkles className="w-4 h-4" />
 
-  const historyOrders = orders.filter(order => order.status === 'paid' || order.status === 'customer_paid')
+  const historyOrders = orders.filter(order =>
+    order.status === 'paid' || order.status === 'customer_paid'
+  )
 
   if (loading) {
     return (
@@ -129,6 +124,7 @@ export default function ChefHistory() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-amber-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -30 }}
@@ -143,9 +139,11 @@ export default function ChefHistory() {
           >
             <ChefHat className="w-10 h-10 text-white" />
           </motion.div>
+
           <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-4">
             Order History
           </h1>
+
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             View all completed orders and manage historical data
           </p>
@@ -164,10 +162,12 @@ export default function ChefHistory() {
                   <Sparkles className="w-5 h-5 mr-2" />
                   Completed Orders History
                 </div>
+
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="bg-white/20 text-white border-0">
                     {historyOrders.length}
                   </Badge>
+
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button
                       onClick={deleteAllHistory}
@@ -182,6 +182,7 @@ export default function ChefHistory() {
                 </div>
               </CardTitle>
             </CardHeader>
+
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence mode="popLayout">
@@ -196,14 +197,21 @@ export default function ChefHistory() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
+                          <h3 className="font-bold text-gray-900 text-lg">
+                            Order #{order.id.slice(-6)}
+                          </h3>
+
                           <div className="flex items-center gap-2 mt-1">
                             <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+
                             <p className="text-sm text-gray-600">
-                              {order.table_no && order.table_no.trim() !== '' ? `Table ${order.table_no}` : `Phone: ${order.customer.phone}`}
+                              {order.table_no?.trim()
+                                ? `Table ${order.table_no}`
+                                : `Phone: ${order.customer.phone}`}
                             </p>
                           </div>
                         </div>
+
                         <Badge className={`${getStatusColor(order.status)} border-0 font-semibold`}>
                           {getStatusIcon(order.status)}
                         </Badge>
@@ -216,13 +224,15 @@ export default function ChefHistory() {
                             className="flex justify-between items-center p-2 bg-white/50 rounded-lg"
                           >
                             <span className="text-sm font-medium text-gray-800">
-                              {item.name} <span className="text-gray-500">×{item.qty}</span>
+                              {item.name} ×{item.qty}
                             </span>
+
                             <span className="text-sm font-semibold text-gray-700">
                               ₹{(item.price * item.qty).toFixed(2)}
                             </span>
                           </div>
                         ))}
+
                         {order.items.length > 3 && (
                           <p className="text-xs text-gray-500 text-center bg-white/30 py-1 rounded">
                             +{order.items.length - 3} more items
@@ -235,13 +245,17 @@ export default function ChefHistory() {
                           <span className="text-sm font-semibold text-gray-800">Order Completed</span>
                           <Sparkles className="w-4 h-4 text-gray-600" />
                         </div>
+
                         <p className="text-xs text-gray-600 mt-1">
                           Payment processed successfully
                         </p>
                       </div>
 
                       <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                        <span className="font-bold text-gray-900 text-lg">₹{order.total.toFixed(2)}</span>
+                        <span className="font-bold text-gray-900 text-lg">
+                          ₹{order.total.toFixed(2)}
+                        </span>
+
                         <span className="text-sm font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
                           Completed
                         </span>
@@ -266,7 +280,7 @@ export default function ChefHistory() {
           </Card>
         </motion.div>
 
-        {/* Real-time Status Bar */}
+        {/* Footer Refresh Bar */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -276,10 +290,12 @@ export default function ChefHistory() {
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
                 <Sparkles className="h-5 w-5 text-green-600" />
+
                 <AlertDescription className="text-gray-700">
                   Order History • Last updated: {lastUpdated.toLocaleTimeString()}
                 </AlertDescription>
               </div>
+
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   onClick={fetchOrders}

@@ -1,5 +1,5 @@
 "use client"
-
+import { API_BASE } from "@/config/api"
 import { useState } from "react"
 import { useApp } from "@/context/app-context"
 import { motion, AnimatePresence } from "framer-motion"
@@ -50,7 +50,8 @@ export default function AdminMenuPage() {
   const handleAddMenuItem = async () => {
     if (!state.token) return
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/menu/', {
+    const response = await fetch(API_BASE + 'menu/', {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +94,8 @@ export default function AdminMenuPage() {
   const handleUpdateMenuItem = async () => {
     if (!editingMenuItem || !state.token) return
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/menu/${editingMenuItem}/`, {
+ const response = await fetch(API_BASE + `menu/${editingMenuItem}/`, {
+
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +128,8 @@ export default function AdminMenuPage() {
     if (!confirm('Are you sure you want to delete this menu item?')) return
     if (!state.token) return
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/menu/${id}/`, {
+      const response = await fetch(API_BASE + `menu/${id}/`, {
+
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${state.token}`,

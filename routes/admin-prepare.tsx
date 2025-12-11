@@ -1,5 +1,5 @@
 "use client"
-
+import { API_BASE } from "@/config/api"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useApp } from "@/context/app-context"
@@ -66,8 +66,8 @@ export default function AdminPrepare() {
   const saveTableEdit = async () => {
     if (!editingTable || !state.token) return
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/orders/${editingTable}/`, {
-        method: 'PATCH',
+      const response = await fetch(API_BASE + `orders/${editingTable}/`, {
+
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${state.token}`
@@ -98,8 +98,8 @@ export default function AdminPrepare() {
     if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) return
     setDeletingOrder(orderId)
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/orders/${orderId}/`, {
-        method: 'DELETE',
+      const response = await fetch(API_BASE + `orders/${orderId}/`, {
+
         headers: {
           'Authorization': `Bearer ${state.token}`
         }

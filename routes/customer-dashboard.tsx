@@ -1,5 +1,5 @@
 "use client"
-
+import { API_BASE } from "@/config/api" 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { User, Clock, CheckCircle, CreditCard, History, Bell, MapPin } from "lucide-react"
@@ -44,18 +44,22 @@ export default function CustomerDashboard() {
   const fetchOrders = async () => {
     try {
       // Fetch current orders (unpaid)
-      const currentResponse = await fetch(`http://localhost:8000/api/orders/current/?phone=${state.user.phone}&include_paid=false`, {
+      const currentResponse = await fetch( `${API_BASE}orders/current/?phone=${state.user.phone}&include_paid=false`, {
         headers: {
           'Authorization': `Bearer ${state.token}`
         }
       })
 
       // Fetch order history (all orders)
-      const historyResponse = await fetch(`http://localhost:8000/api/orders/current/?phone=${state.user.phone}&include_paid=true`, {
-        headers: {
-          'Authorization': `Bearer ${state.token}`
-        }
-      })
+      const historyResponse = await fetch(
+  `${API_BASE}orders/current/?phone=${state.user.phone}&include_paid=true`,
+  {
+    headers: {
+      'Authorization': `Bearer ${state.token}`
+    }
+  }
+)
+
 
       if (currentResponse.ok && historyResponse.ok) {
         const currentData = await currentResponse.json()

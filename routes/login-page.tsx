@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChefHat, UserCog, Lock, Eye, EyeOff, Sparkles, Shield, Utensils } from "lucide-react"
+import { API_BASE } from "@/config/api"
 
 export default function LoginPage() {
   const { loginStaff } = useApp()
@@ -28,7 +29,8 @@ export default function LoginPage() {
     setError("")
     
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/staff/login/', {
+      const res = await fetch(`${API_BASE}auth/staff/login/`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: role, password })

@@ -1,4 +1,5 @@
 "use client"
+import { API_BASE } from "@/config/api"
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -46,11 +47,12 @@ export default function ChefDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/orders/', {
-        headers: {
-          'Authorization': `Bearer ${state.token}`
-        }
-      })
+const response = await fetch(`${API_BASE}orders/`, {
+  headers: {
+    'Authorization': `Bearer ${state.token}`
+  }
+})
+
 
       if (response.ok) {
         const data = await response.json()
@@ -67,14 +69,14 @@ export default function ChefDashboard() {
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     setUpdatingOrder(orderId)
     try {
-      const response = await fetch(`http://localhost:8000/api/orders/${orderId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${state.token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      })
+const response = await fetch(`${API_BASE}orders/${orderId}/`, {
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${state.token}`
+  },
+  body: JSON.stringify({ status: newStatus })
+})
 
       if (response.ok) {
         setOrders(orders.map(order =>
