@@ -1,6 +1,5 @@
 "use client"
 import { API_BASE } from "@/config/api"
-
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
@@ -20,7 +19,8 @@ import {
   Sparkles,
   User,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Key
 } from "lucide-react"
 
 export default function UserDetailsPage() {
@@ -39,7 +39,7 @@ export default function UserDetailsPage() {
 
     try {
       const response = await fetch(`${API_BASE}auth/send-otp/`, {
-
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -79,7 +79,6 @@ export default function UserDetailsPage() {
 
     try {
       const response = await fetch(`${API_BASE}auth/customer/verify/`, {
-
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,7 +110,6 @@ export default function UserDetailsPage() {
     setLoading(true)
     try {
       const response = await fetch(`${API_BASE}auth/send-otp/`, {
-
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -147,26 +145,26 @@ export default function UserDetailsPage() {
   }
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
-      <div className="max-w-md mx-auto">
+    <section className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 md:py-8 px-3 md:px-4 flex items-center justify-center">
+      <div className="w-full max-w-md mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-6 md:mb-8"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mb-6 shadow-2xl border-4 border-white/20"
+            className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-full mb-4 md:mb-6 shadow-lg border-4 border-white/20"
           >
-            <User className="w-10 h-10 text-white" />
+            <User className="w-8 h-8 md:w-10 md:h-10 text-white" />
           </motion.div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">
             {step === "details" ? "Welcome!" : "Verify OTP"}
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-sm md:text-lg text-gray-600">
             {step === "details" 
               ? "Enter your details to start ordering" 
               : "Enter the OTP sent to your phone"
@@ -180,20 +178,20 @@ export default function UserDetailsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-              <CardTitle className="text-2xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Shield className="w-6 h-6" />
+          <Card className="border border-gray-200 shadow-lg bg-white overflow-hidden">
+            <CardHeader className="bg-gray-800 text-white p-4 md:p-6">
+              <CardTitle className="text-lg md:text-2xl flex items-center justify-between">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <Shield className="w-5 h-5 md:w-6 md:h-6" />
                   {step === "details" ? "Customer Details" : "OTP Verification"}
                 </div>
                 {state.currentTable && (
-                  <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                     Table {state.currentTable}
                   </Badge>
                 )}
               </CardTitle>
-              <CardDescription className="text-purple-100">
+              <CardDescription className="text-gray-200 text-sm md:text-base">
                 {step === "details" 
                   ? "We'll send a verification code to your phone"
                   : `Enter the 6-digit code sent to ${phone}`
@@ -201,7 +199,7 @@ export default function UserDetailsPage() {
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <AnimatePresence mode="wait">
                 {step === "details" ? (
                   <motion.form
@@ -210,11 +208,11 @@ export default function UserDetailsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     onSubmit={handleDetailsSubmit}
-                    className="space-y-6"
+                    className="space-y-4 md:space-y-6"
                   >
                     {/* Phone Input */}
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Label htmlFor="phone" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                         <Smartphone className="w-4 h-4" />
                         Phone Number *
                       </Label>
@@ -224,19 +222,19 @@ export default function UserDetailsPage() {
                           type="tel"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="h-12 border-2 border-gray-200 bg-white/50 rounded-xl pl-11 focus:border-purple-500 transition-colors"
+                          className="h-11 md:h-12 border border-gray-300 bg-white rounded-lg pl-10 focus:border-gray-500 transition-colors"
                           placeholder="Enter your phone number"
                           required
                         />
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                          <Smartphone className="w-5 h-5 text-gray-400" />
+                          <Smartphone className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                         </div>
                       </div>
                     </div>
 
                     {/* Email Input */}
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                         <Mail className="w-4 h-4" />
                         Email Address
                       </Label>
@@ -246,11 +244,11 @@ export default function UserDetailsPage() {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="h-12 border-2 border-gray-200 bg-white/50 rounded-xl pl-11 focus:border-purple-500 transition-colors"
+                          className="h-11 md:h-12 border border-gray-300 bg-white rounded-lg pl-10 focus:border-gray-500 transition-colors"
                           placeholder="Enter your email (optional)"
                         />
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                          <Mail className="w-5 h-5 text-gray-400" />
+                          <Mail className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                         </div>
                       </div>
                       <p className="text-xs text-gray-500">
@@ -259,25 +257,24 @@ export default function UserDetailsPage() {
                     </div>
 
                     {/* Submit Button */}
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                       <Button
                         type="submit"
                         disabled={loading || !phone}
-                        className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg border-0 font-semibold rounded-xl"
-                        size="lg"
+                        className="w-full h-11 md:h-12 bg-gray-800 hover:bg-gray-900 text-white shadow border-0 font-medium rounded-lg"
                       >
                         {loading ? (
-                          <div className="flex items-center">
+                          <div className="flex items-center justify-center">
                             <motion.div
                               animate={{ rotate: 360 }}
                               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
+                              className="w-4 h-4 md:w-5 md:h-5 border-2 border-white border-t-transparent rounded-full mr-2"
                             />
                             Sending OTP...
                           </div>
                         ) : (
-                          <div className="flex items-center">
-                            <Lock className="w-5 h-5 mr-2" />
+                          <div className="flex items-center justify-center">
+                            <Key className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                             Send Verification Code
                           </div>
                         )}
@@ -291,11 +288,11 @@ export default function UserDetailsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     onSubmit={handleOtpSubmit}
-                    className="space-y-6"
+                    className="space-y-4 md:space-y-6"
                   >
                     {/* OTP Input */}
-                    <div className="space-y-4">
-                      <Label htmlFor="otp" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <div className="space-y-3 md:space-y-4">
+                      <Label htmlFor="otp" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                         <Lock className="w-4 h-4" />
                         Verification Code
                       </Label>
@@ -305,7 +302,7 @@ export default function UserDetailsPage() {
                           type="text"
                           value={otp}
                           onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                          className="h-16 border-2 border-gray-200 bg-white/50 rounded-xl text-center text-2xl font-bold tracking-widest focus:border-purple-500 transition-colors"
+                          className="h-12 md:h-16 border border-gray-300 bg-white rounded-lg text-center text-xl md:text-2xl font-bold tracking-widest focus:border-gray-500 transition-colors"
                           placeholder="000000"
                           maxLength={6}
                           required
@@ -323,15 +320,15 @@ export default function UserDetailsPage() {
                         onClick={handleResendOtp}
                         disabled={resendCooldown > 0 || loading}
                         variant="outline"
-                        className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
                         {resendCooldown > 0 ? (
-                          <div className="flex items-center">
+                          <div className="flex items-center justify-center">
                             <Clock className="w-4 h-4 mr-2" />
                             Resend in {resendCooldown}s
                           </div>
                         ) : (
-                          <div className="flex items-center">
+                          <div className="flex items-center justify-center">
                             <RefreshCw className="w-4 h-4 mr-2" />
                             Resend OTP
                           </div>
@@ -341,25 +338,24 @@ export default function UserDetailsPage() {
 
                     {/* Action Buttons */}
                     <div className="space-y-3">
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                         <Button
                           type="submit"
                           disabled={loading || otp.length !== 6}
-                          className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg border-0 font-semibold rounded-xl"
-                          size="lg"
+                          className="w-full h-11 md:h-12 bg-gray-800 hover:bg-gray-900 text-white shadow border-0 font-medium rounded-lg"
                         >
                           {loading ? (
-                            <div className="flex items-center">
+                            <div className="flex items-center justify-center">
                               <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
+                                className="w-4 h-4 md:w-5 md:h-5 border-2 border-white border-t-transparent rounded-full mr-2"
                               />
                               Verifying...
                             </div>
                           ) : (
-                            <div className="flex items-center">
-                              <CheckCircle className="w-5 h-5 mr-2" />
+                            <div className="flex items-center justify-center">
+                              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                               Verify & Continue
                             </div>
                           )}
@@ -370,7 +366,7 @@ export default function UserDetailsPage() {
                         type="button"
                         onClick={() => setStep("details")}
                         variant="outline"
-                        className="w-full border-gray-200 text-gray-600 hover:bg-gray-50"
+                        className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
                       >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Change Details
@@ -385,13 +381,13 @@ export default function UserDetailsPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200"
+                className="mt-4 md:mt-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200"
               >
                 <div className="flex items-start gap-3">
-                  <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <Shield className="w-4 h-4 md:w-5 md:h-5 text-gray-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-blue-900 text-sm mb-1">Secure Verification</h4>
-                    <p className="text-xs text-blue-700">
+                    <h4 className="font-medium text-gray-900 text-sm mb-1">Secure Verification</h4>
+                    <p className="text-xs text-gray-600">
                       Your information is protected. We use OTP verification to ensure secure access to your orders.
                     </p>
                   </div>
@@ -406,9 +402,9 @@ export default function UserDetailsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="mt-6 text-center"
+          className="mt-4 md:mt-6 text-center"
         >
-          <p className="text-sm text-gray-500">
+          <p className="text-xs md:text-sm text-gray-500">
             By continuing, you agree to our terms of service and privacy policy
           </p>
         </motion.div>

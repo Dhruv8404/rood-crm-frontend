@@ -1,20 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import { useApp } from "@/context/app-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Scan, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
+import { Table, Smartphone, Menu, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { API_BASE } from "@/config/api"
-
-interface VerificationResult {
-  valid: boolean
-  table_no?: string
-  error?: string
-}
 
 interface QRData {
   table_no: string
@@ -24,14 +17,14 @@ interface QRData {
 
 export default function ScanPage() {
   const navigate = useNavigate()
-  const params = useParams()
   const { setCurrentTable, state } = useApp()
 
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null)
   const [selectedTable, setSelectedTable] = useState<string>("")
   const [qrData, setQrData] = useState<QRData[]>([])
   const [loadingTables, setLoadingTables] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   // Redirect admin users
   useEffect(() => {
@@ -40,12 +33,11 @@ export default function ScanPage() {
     }
   }, [state.user.role, navigate])
 
-  // Fetch available tables from admin QR codes
+  // Fetch available tables
   useEffect(() => {
     const fetchTables = async () => {
       try {
         const response = await fetch(`${API_BASE}tables/`, {
-
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -56,10 +48,11 @@ export default function ScanPage() {
           const data: QRData[] = await response.json()
           setQrData(data)
         } else {
-          console.error('Failed to fetch tables')
+          throw new Error('Failed to fetch tables')
         }
       } catch (error) {
         console.error('Error fetching tables:', error)
+        setError('Unable to load tables. Please try again.')
       } finally {
         setLoadingTables(false)
       }
@@ -68,232 +61,284 @@ export default function ScanPage() {
     fetchTables()
   }, [])
 
-  // Handle QR code scanning or direct table access
-  useEffect(() => {
-    const table = params.table
-    const hash = params.hash
+  const handleTableSelection = (tableNum: string) => {
+    setSelectedTable(tableNum)
+    setError(null)
+  }
 
-    if (table && hash) {
-      // QR code scanning - verify with backend
-      handleQRVerification(table, hash)
-    } else if (table && !hash) {
-      // Direct table selection from URL
-      handleDirectTableSelection(table)
+  const handleConfirmTable = async () => {
+    if (!selectedTable) {
+      setError('Please select a table first')
+      return
     }
-  }, [params.table, params.hash])
 
-  const handleQRVerification = async (table: string, hash: string) => {
-    setIsVerifying(true)
-    setVerificationResult(null)
+    setIsProcessing(true)
+    setError(null)
+    setSuccessMessage(null)
 
     try {
-      const response = await fetch(`${API_BASE}tables/verify/?table=${table}&hash=${hash}`, {
-
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.valid) {
-        setVerificationResult({ valid: true, table_no: data.table_no })
-        setCurrentTable(data.table_no)
-        setTimeout(() => {
-          navigate('/menu')
-        }, 2000)
-      } else {
-        setVerificationResult({
-          valid: false,
-          error: data.error || 'Invalid QR code. Please scan a valid table QR code.'
-        })
+      // Verify table exists
+      if (!qrData.some(qr => qr.table_no === selectedTable)) {
+        throw new Error('Invalid table number')
       }
-    } catch (error) {
-      console.error('Verification failed:', error)
-      setVerificationResult({
-        valid: false,
-        error: 'Unable to verify QR code. Please check your connection and try again.'
-      })
+
+      // Set the table in context
+      setCurrentTable(selectedTable)
+      
+      // Show success message
+      setSuccessMessage(`Table ${selectedTable} confirmed. Redirecting to menu...`)
+      
+      // Redirect after delay
+      setTimeout(() => {
+        navigate('/menu')
+      }, 1500)
+      
+    } catch (error: any) {
+      setError(error.message || 'Failed to select table')
     } finally {
-      setIsVerifying(false)
+      setIsProcessing(false)
     }
   }
 
-  const handleDirectTableSelection = (table: string) => {
-    setCurrentTable(table)
-    setVerificationResult({ valid: true, table_no: table })
-    setTimeout(() => {
-      navigate('/menu')
-    }, 1500)
-  }
-
-  const handleManualTableSelection = (tableNum: string) => {
-    setSelectedTable(tableNum)
-    setCurrentTable(tableNum)
-    setVerificationResult({ valid: true, table_no: tableNum })
-    setTimeout(() => {
-      navigate('/menu')
-    }, 1500)
-  }
-
-  const resetVerification = () => {
-    setVerificationResult(null)
-    setIsVerifying(false)
+  const resetSelection = () => {
+    setSelectedTable("")
+    setError(null)
+    setSuccessMessage(null)
   }
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full mb-6 shadow-2xl border-4 border-white/20"
-          >
-            <Scan className="w-10 h-10 text-white" />
-          </motion.div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
-            Scan Table QR Code
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Scan the QR code on your table to start ordering delicious food
-          </p>
-        </motion.div>
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Table className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">Select Your Table</h1>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Choose your table number to start ordering from our digital menu
+            </p>
+          </div>
 
-        {/* Verification Status */}
-        {(isVerifying || verificationResult) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                {isVerifying ? (
-                  <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Verifying QR Code</h3>
-                    <p className="text-gray-600">Please wait while we verify your table...</p>
-                  </div>
-                ) : verificationResult ? (
-                  <Alert className={verificationResult.valid ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
-                    {verificationResult.valid ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className="text-sm">
-                      {verificationResult.valid
-                        ? `Welcome! Your table number is ${verificationResult.table_no}. Redirecting to menu...`
-                        : verificationResult.error
-                      }
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+          {error && (
+            <div className="max-w-md mx-auto mb-6">
+              <Alert className="border-red-200 bg-red-50">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-sm text-red-700">
+                  {error}
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
 
-        {/* Manual Table Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="max-w-md mx-auto"
-        >
-          <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 to-pink-100">
-            <CardHeader>
-              <CardTitle className="text-center text-xl font-semibold text-gray-900">
-                Select Your Table
+          {successMessage && (
+            <div className="max-w-md mx-auto mb-6">
+              <Alert className="border-emerald-200 bg-emerald-50">
+                <CheckCircle className="h-4 w-4 text-emerald-600" />
+                <AlertDescription className="text-sm text-emerald-700">
+                  {successMessage}
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+        </div>
+
+        {/* Table Selection */}
+        <div className="max-w-2xl mx-auto">
+          <Card className="border border-gray-200 mb-6">
+            <CardHeader className="bg-gray-50 border-b">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Table className="w-5 h-5" />
+                Available Tables
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-6">
-                  Choose your table number to begin ordering
+            <CardContent className="p-6">
+              <div className="text-center mb-6">
+                <p className="text-sm text-gray-600">
+                  Please select your table number from the list below
                 </p>
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  {loadingTables ? (
-                    <div className="col-span-3 text-center py-8">
-                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
-                      <p className="text-gray-600">Loading available tables...</p>
-                    </div>
-                  ) : qrData.length > 0 ? (
-                    qrData.map((qr) => (
+                {selectedTable && (
+                  <p className="text-sm font-medium text-gray-900 mt-2">
+                    Selected: <span className="text-blue-600">Table {selectedTable}</span>
+                  </p>
+                )}
+              </div>
+              
+              {loadingTables ? (
+                <div className="text-center py-8">
+                  <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading available tables...</p>
+                </div>
+              ) : qrData.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-8">
+                    {qrData.map((qr) => (
                       <Button
                         key={qr.table_no}
                         variant="outline"
-                        size="lg"
-                        className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 h-16 text-lg font-semibold disabled:opacity-50"
-                        onClick={() => handleManualTableSelection(qr.table_no)}
-                        disabled={isVerifying || (verificationResult?.valid && verificationResult.table_no !== qr.table_no)}
+                        className={`h-20 border-gray-300 hover:bg-gray-50 transition-colors ${
+                          selectedTable === qr.table_no 
+                            ? 'bg-gray-900 text-white hover:bg-gray-800 border-gray-900' 
+                            : ''
+                        }`}
+                        onClick={() => handleTableSelection(qr.table_no)}
+                        disabled={isProcessing}
                       >
-                        Table {qr.table_no}
+                        <div className="flex flex-col items-center gap-2">
+                          <Table className="w-5 h-5" />
+                          <span className="font-semibold text-lg">Table {qr.table_no}</span>
+                        </div>
                       </Button>
-                    ))
-                  ) : (
-                    <div className="col-span-3 text-center py-8">
-                      <p className="text-gray-600">No tables available. Please contact restaurant staff.</p>
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    {selectedTable && (
+                      <Button
+                        onClick={handleConfirmTable}
+                        disabled={isProcessing}
+                        className="bg-gray-900 hover:bg-gray-800 text-white flex-1"
+                      >
+                        {isProcessing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Confirm Table {selectedTable}
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    
+                    {selectedTable && (
+                      <Button
+                        onClick={resetSelection}
+                        variant="outline"
+                        className="border-gray-300 flex-1"
+                        disabled={isProcessing}
+                      >
+                        Change Table
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <Table className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No Tables Available</h3>
+                  <p className="text-gray-500">
+                    All tables are currently occupied or unavailable. Please wait for staff assistance.
+                  </p>
                 </div>
-                {(verificationResult || isVerifying) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={resetVerification}
-                    className="border-gray-200 text-gray-700 hover:bg-gray-50 w-full"
-                  >
-                    Reset
-                  </Button>
-                )}
-              </div>
+              )}
             </CardContent>
           </Card>
-        </motion.div>
 
-        {/* Instructions */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-8 max-w-2xl mx-auto"
-        >
-          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+          {/* Instructions */}
+          <Card className="border border-gray-200">
+            <CardHeader className="bg-gray-50 border-b">
+              <CardTitle className="text-lg font-semibold">How Digital Ordering Works</CardTitle>
+            </CardHeader>
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">How to Use</h3>
-              <div className="space-y-3 text-sm text-gray-600">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 font-semibold text-xs">1</span>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-gray-900 font-semibold">1</span>
                   </div>
-                  <p>Scan the QR code displayed on your table using your phone's camera</p>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-1">Select Your Table</h4>
+                    <p className="text-sm text-gray-600">
+                      Choose your table number from the available options. This helps us serve your order correctly.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 font-semibold text-xs">2</span>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-gray-900 font-semibold">2</span>
                   </div>
-                  <p>You'll be automatically redirected to the menu page</p>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-1">Browse Our Menu</h4>
+                    <p className="text-sm text-gray-600">
+                      Explore our complete menu with prices, descriptions, and images. Take your time to choose.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 font-semibold text-xs">3</span>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-gray-900 font-semibold">3</span>
                   </div>
-                  <p>Browse items, add to cart, and place your order</p>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-1">Add Items to Cart</h4>
+                    <p className="text-sm text-gray-600">
+                      Select items, customize with special instructions, and add them to your cart.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-gray-900 font-semibold">4</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-1">Place Your Order</h4>
+                    <p className="text-sm text-gray-600">
+                      Review your order, provide contact details, and submit. Your food will be prepared fresh.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-gray-900 font-semibold">5</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-1">Track & Enjoy</h4>
+                    <p className="text-sm text-gray-600">
+                      Watch your order progress in real-time. We'll serve it directly to your table.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <Smartphone className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                    <h4 className="font-medium text-gray-900 mb-1">Mobile Friendly</h4>
+                    <p className="text-xs text-gray-600">Optimized for all devices</p>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <Table className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                    <h4 className="font-medium text-gray-900 mb-1">Table Service</h4>
+                    <p className="text-xs text-gray-600">Direct to your table</p>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <Menu className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                    <h4 className="font-medium text-gray-900 mb-1">Digital Menu</h4>
+                    <p className="text-xs text-gray-600">Always up-to-date</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
+
+        {/* Help Text */}
+        <div className="mt-8 text-center">
+          <div className="inline-flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm font-medium text-gray-900">Need assistance?</p>
+            <p className="text-sm text-gray-600">Please ask our restaurant staff for help</p>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   )
 }

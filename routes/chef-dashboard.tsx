@@ -1,9 +1,8 @@
 "use client"
 import { API_BASE } from "@/config/api"
-
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChefHat, Clock, CheckCircle, AlertTriangle, Users, TrendingUp, Timer, Package, RefreshCw } from "lucide-react"
+import { ChefHat, Clock, CheckCircle, AlertTriangle, Users, TrendingUp, Timer, Package, RefreshCw, List, CookingPot, CheckSquare } from "lucide-react"
 import { useApp } from "@/context/app-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -47,12 +46,11 @@ export default function ChefDashboard() {
 
   const fetchOrders = async () => {
     try {
-const response = await fetch(`${API_BASE}orders/`, {
-  headers: {
-    'Authorization': `Bearer ${state.token}`
-  }
-})
-
+      const response = await fetch(`${API_BASE}orders/`, {
+        headers: {
+          'Authorization': `Bearer ${state.token}`
+        }
+      })
 
       if (response.ok) {
         const data = await response.json()
@@ -69,14 +67,14 @@ const response = await fetch(`${API_BASE}orders/`, {
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     setUpdatingOrder(orderId)
     try {
-const response = await fetch(`${API_BASE}orders/${orderId}/`, {
-  method: 'PATCH',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${state.token}`
-  },
-  body: JSON.stringify({ status: newStatus })
-})
+      const response = await fetch(`${API_BASE}orders/${orderId}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      })
 
       if (response.ok) {
         setOrders(orders.map(order =>
@@ -90,27 +88,25 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
     }
   }
 
-
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'preparing': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200'
-      case 'customer_paid': return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'paid': return 'bg-gray-100 text-gray-800 border-gray-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'pending': return 'bg-gray-100 text-gray-800'
+      case 'preparing': return 'bg-gray-100 text-gray-800'
+      case 'completed': return 'bg-gray-100 text-gray-800'
+      case 'customer_paid': return 'bg-gray-100 text-gray-800'
+      case 'paid': return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending': return <AlertTriangle className="w-4 h-4" />
-      case 'preparing': return <Clock className="w-4 h-4" />
-      case 'completed': return <CheckCircle className="w-4 h-4" />
-      case 'customer_paid': return <CheckCircle className="w-4 h-4" />
-      case 'paid': return <CheckCircle className="w-4 h-4" />
-      default: return <Clock className="w-4 h-4" />
+      case 'pending': return <AlertTriangle className="w-3 h-3 md:w-4 md:h-4" />
+      case 'preparing': return <Clock className="w-3 h-3 md:w-4 md:h-4" />
+      case 'completed': return <CheckCircle className="w-3 h-3 md:w-4 md:h-4" />
+      case 'customer_paid': return <CheckCircle className="w-3 h-3 md:w-4 md:h-4" />
+      case 'paid': return <CheckCircle className="w-3 h-3 md:w-4 md:h-4" />
+      default: return <Clock className="w-3 h-3 md:w-4 md:h-4" />
     }
   }
 
@@ -125,8 +121,6 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
   const preparingParcelOrders = parcelOrders.filter(order => order.status === 'preparing')
   const completedParcelOrders = parcelOrders.filter(order => order.status === 'completed')
 
-
-
   const totalItems = (pendingTableOrders.length + pendingParcelOrders.length) > 0 ?
     [...pendingTableOrders, ...pendingParcelOrders].reduce((total, order) =>
       total + order.items.reduce((sum, item) => sum + item.qty, 0), 0
@@ -134,7 +128,7 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-amber-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -143,36 +137,36 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-orange-200 border-t-orange-600 rounded-full mx-auto mb-4"
+            className="w-12 h-12 md:w-16 md:h-16 border-4 border-gray-200 border-t-gray-800 rounded-full mx-auto mb-3 md:mb-4"
           />
-          <h3 className="text-xl font-semibold text-gray-700">Loading Kitchen Dashboard...</h3>
-          <p className="text-gray-500 mt-2">Getting orders ready for you</p>
+          <h3 className="text-base md:text-xl font-semibold text-gray-700">Loading Kitchen Dashboard...</h3>
+          <p className="text-gray-500 mt-1 md:mt-2 text-sm md:text-base">Getting orders ready for you</p>
         </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-amber-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 md:py-8 px-3 md:px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-6 md:mb-8"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-full mb-6 shadow-2xl border-4 border-white/20"
+            className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-full mb-4 md:mb-6 shadow-lg border-4 border-white/20"
           >
-            <ChefHat className="w-10 h-10 text-white" />
+            <ChefHat className="w-8 h-8 md:w-10 md:h-10 text-white" />
           </motion.div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">
             Chef Dashboard
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-sm md:text-xl text-gray-600 max-w-2xl mx-auto">
             Manage kitchen operations and track order progress in real-time
           </p>
         </motion.div>
@@ -182,57 +176,57 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8"
         >
           {/* Total Active Orders */}
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-orange-600 mb-1">Active Orders</p>
-                  <p className="text-3xl font-bold text-gray-900">{pendingTableOrders.length + pendingParcelOrders.length}</p>
-                  <p className="text-sm text-orange-600 mt-1">
+                  <p className="text-xs md:text-sm font-medium text-gray-700 mb-1">Active Orders</p>
+                  <p className="text-lg md:text-3xl font-bold text-gray-900">{pendingTableOrders.length + pendingParcelOrders.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     {totalItems} total items
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Users className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-lg md:rounded-xl flex items-center justify-center shadow">
+                  <List className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Preparing Orders */}
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-blue-600 mb-1">In Kitchen</p>
-                  <p className="text-3xl font-bold text-gray-900">{preparingTableOrders.length + preparingParcelOrders.length}</p>
-                  <p className="text-sm text-blue-600 mt-1">
+                  <p className="text-xs md:text-sm font-medium text-gray-700 mb-1">In Kitchen</p>
+                  <p className="text-lg md:text-3xl font-bold text-gray-900">{preparingTableOrders.length + preparingParcelOrders.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Being prepared
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Clock className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-lg md:rounded-xl flex items-center justify-center shadow">
+                  <CookingPot className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Ready Orders */}
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-600 mb-1">Ready</p>
-                  <p className="text-3xl font-bold text-gray-900">{completedTableOrders.length + completedParcelOrders.length}</p>
-                  <p className="text-sm text-green-600 mt-1">
+                  <p className="text-xs md:text-sm font-medium text-gray-700 mb-1">Ready</p>
+                  <p className="text-lg md:text-3xl font-bold text-gray-900">{completedTableOrders.length + completedParcelOrders.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Ready to serve
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <CheckCircle className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-lg md:rounded-xl flex items-center justify-center shadow">
+                  <CheckSquare className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
               </div>
             </CardContent>
@@ -240,31 +234,31 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
         </motion.div>
 
         {/* Table Orders Pipeline */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-            <Users className="w-6 h-6 mr-2 text-orange-600" />
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-2xl font-bold text-gray-800 mb-3 md:mb-4 flex items-center">
+            <Users className="w-5 h-5 md:w-6 md:h-6 mr-2 text-gray-700" />
             Table Orders
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           {/* Pending Orders Column */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm h-full">
-              <CardHeader className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white">
+            <Card className="border border-gray-200 shadow h-full">
+              <CardHeader className="bg-gray-800 text-white p-3 md:p-4">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <AlertTriangle className="w-5 h-5 mr-2" />
-                    Pending
+                    <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                    <span className="text-sm md:text-base">Pending</span>
                   </div>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                     {pendingTableOrders.length}
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
                 <AnimatePresence mode="popLayout">
                   {pendingTableOrders.map((order) => (
                     <motion.div
@@ -273,69 +267,69 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       layout
-                      className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 border-2 border-yellow-200 shadow-sm hover:shadow-md transition-all duration-300"
+                      className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-2 md:mb-3">
                         <div>
-                          <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
+                          <h3 className="font-bold text-gray-900 text-sm md:text-base">Order #{order.id.slice(-6)}</h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <p className="text-sm text-gray-600">Table {order.table_no}</p>
+                            <div className="w-1 h-1 md:w-2 md:h-2 bg-gray-500 rounded-full"></div>
+                            <p className="text-xs md:text-sm text-gray-600">Table {order.table_no}</p>
                           </div>
                         </div>
-                        <Badge className={`${getStatusColor(order.status)} border-0 font-semibold`}>
+                        <Badge className={`${getStatusColor(order.status)} border border-gray-300 text-xs md:text-sm`}>
                           {getStatusIcon(order.status)}
                         </Badge>
                       </div>
 
-                      <div className="space-y-2 mb-4">
-                        {order.items.slice(0, 3).map((item, index) => (
+                      <div className="space-y-2 mb-3 md:mb-4">
+                        {order.items.slice(0, 2).map((item, index) => (
                           <motion.div
                             key={item.id}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="flex justify-between items-center p-2 bg-white/50 rounded-lg"
+                            className="flex justify-between items-center p-2 bg-white rounded"
                           >
-                            <span className="text-sm font-medium text-gray-800">
+                            <span className="text-xs md:text-sm font-medium text-gray-800 truncate">
                               {item.name} <span className="text-gray-500">×{item.qty}</span>
                             </span>
-                            <span className="text-sm font-semibold text-gray-700">
+                            <span className="text-xs md:text-sm font-semibold text-gray-700 whitespace-nowrap ml-2">
                               ₹{(item.price * item.qty).toFixed(2)}
                             </span>
                           </motion.div>
                         ))}
-                        {order.items.length > 3 && (
-                          <p className="text-xs text-gray-500 text-center bg-white/30 py-1 rounded">
-                            +{order.items.length - 3} more items
+                        {order.items.length > 2 && (
+                          <p className="text-xs text-gray-500 text-center bg-gray-100 py-1 rounded">
+                            +{order.items.length - 2} more items
                           </p>
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-yellow-200">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between pt-2 md:pt-3 border-t border-gray-300 gap-2">
                         <div>
-                          <span className="font-bold text-gray-900 text-lg">₹{order.total.toFixed(2)}</span>
+                          <span className="font-bold text-gray-900 text-sm md:text-base">₹{order.total.toFixed(2)}</span>
                           <p className="text-xs text-gray-500">{order.items.length} items</p>
                         </div>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button
                             onClick={() => updateOrderStatus(order.id, 'preparing')}
                             disabled={updatingOrder === order.id}
-                            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg border-0 font-semibold"
+                            className="bg-gray-800 hover:bg-gray-900 text-white shadow border-0 text-xs md:text-sm w-full md:w-auto"
                             size="sm"
                           >
                             {updatingOrder === order.id ? (
-                              <div className="flex items-center">
+                              <div className="flex items-center justify-center">
                                 <motion.div
                                   animate={{ rotate: 360 }}
                                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                  className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                                 />
                                 Starting...
                               </div>
                             ) : (
                               <>
-                                <Clock className="w-4 h-4 mr-1" />
+                                <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                                 Start Prep
                               </>
                             )}
@@ -350,11 +344,11 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center py-12 text-gray-500"
+                    className="text-center py-6 md:py-12 text-gray-500"
                   >
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
-                    <h3 className="font-semibold text-gray-600 mb-2">All Clear!</h3>
-                    <p className="text-sm">No pending orders</p>
+                    <CheckCircle className="w-10 h-10 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
+                    <h3 className="font-medium text-gray-600 text-sm md:text-base mb-1 md:mb-2">All Clear!</h3>
+                    <p className="text-xs md:text-sm">No pending orders</p>
                   </motion.div>
                 )}
               </CardContent>
@@ -367,19 +361,19 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm h-full">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+            <Card className="border border-gray-200 shadow h-full">
+              <CardHeader className="bg-gray-800 text-white p-3 md:p-4">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2" />
-                    Preparing
+                    <Clock className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                    <span className="text-sm md:text-base">Preparing</span>
                   </div>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                     {preparingTableOrders.length}
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
                 <AnimatePresence mode="popLayout">
                   {preparingTableOrders.map((order) => (
                     <motion.div
@@ -388,66 +382,66 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       layout
-                      className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border-2 border-blue-200 shadow-sm hover:shadow-md transition-all duration-300"
+                      className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-2 md:mb-3">
                         <div>
-                          <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
+                          <h3 className="font-bold text-gray-900 text-sm md:text-base">Order #{order.id.slice(-6)}</h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                            <p className="text-sm text-gray-600">Table {order.table_no}</p>
+                            <div className="w-1 h-1 md:w-2 md:h-2 bg-gray-800 rounded-full animate-pulse"></div>
+                            <p className="text-xs md:text-sm text-gray-600">Table {order.table_no}</p>
                           </div>
                         </div>
-                        <Badge className={`${getStatusColor(order.status)} border-0 font-semibold`}>
+                        <Badge className={`${getStatusColor(order.status)} border border-gray-300 text-xs md:text-sm`}>
                           {getStatusIcon(order.status)}
                         </Badge>
                       </div>
 
-                      <div className="space-y-2 mb-4">
-                        {order.items.slice(0, 3).map((item, index) => (
+                      <div className="space-y-2 mb-3 md:mb-4">
+                        {order.items.slice(0, 2).map((item, index) => (
                           <div
                             key={item.id}
-                            className="flex justify-between items-center p-2 bg-white/50 rounded-lg"
+                            className="flex justify-between items-center p-2 bg-white rounded"
                           >
-                            <span className="text-sm font-medium text-gray-800">
+                            <span className="text-xs md:text-sm font-medium text-gray-800 truncate">
                               {item.name} <span className="text-gray-500">×{item.qty}</span>
                             </span>
-                            <span className="text-sm font-semibold text-gray-700">
+                            <span className="text-xs md:text-sm font-semibold text-gray-700 whitespace-nowrap ml-2">
                               ₹{(item.price * item.qty).toFixed(2)}
                             </span>
                           </div>
                         ))}
                       </div>
 
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
+                      <div className="space-y-2 md:space-y-3 mb-3">
+                        <div className="flex justify-between text-xs md:text-sm">
                           <span className="text-gray-600">Progress</span>
-                          <span className="font-semibold text-blue-600">50%</span>
+                          <span className="font-semibold text-gray-700">50%</span>
                         </div>
-                        <Progress value={50} className="h-2 bg-blue-200" />
+                        <Progress value={50} className="h-1 md:h-2 bg-gray-200" />
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-blue-200">
-                        <span className="font-bold text-gray-900 text-lg">₹{order.total.toFixed(2)}</span>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between pt-2 md:pt-3 border-t border-gray-300 gap-2">
+                        <span className="font-bold text-gray-900 text-sm md:text-base">₹{order.total.toFixed(2)}</span>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button
                             onClick={() => updateOrderStatus(order.id, 'completed')}
                             disabled={updatingOrder === order.id}
-                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg border-0 font-semibold"
+                            className="bg-gray-800 hover:bg-gray-900 text-white shadow border-0 text-xs md:text-sm w-full md:w-auto"
                             size="sm"
                           >
                             {updatingOrder === order.id ? (
-                              <div className="flex items-center">
+                              <div className="flex items-center justify-center">
                                 <motion.div
                                   animate={{ rotate: 360 }}
                                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                  className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                                 />
                                 Completing...
                               </div>
                             ) : (
                               <>
-                                <CheckCircle className="w-4 h-4 mr-1" />
+                                <CheckCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                                 Mark Ready
                               </>
                             )}
@@ -462,11 +456,11 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center py-12 text-gray-500"
+                    className="text-center py-6 md:py-12 text-gray-500"
                   >
-                    <Clock className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-                    <h3 className="font-semibold text-gray-600 mb-2">Kitchen Ready</h3>
-                    <p className="text-sm">No orders in preparation</p>
+                    <Clock className="w-10 h-10 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
+                    <h3 className="font-medium text-gray-600 text-sm md:text-base mb-1 md:mb-2">Kitchen Ready</h3>
+                    <p className="text-xs md:text-sm">No orders in preparation</p>
                   </motion.div>
                 )}
               </CardContent>
@@ -479,19 +473,19 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm h-full">
-              <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+            <Card className="border border-gray-200 shadow h-full">
+              <CardHeader className="bg-gray-800 text-white p-3 md:p-4">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Ready
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                    <span className="text-sm md:text-base">Ready</span>
                   </div>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                     {completedTableOrders.length}
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
                 <AnimatePresence mode="popLayout">
                   {completedTableOrders.map((order) => (
                     <motion.div
@@ -500,68 +494,68 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       layout
-                      className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 border-2 border-green-200 shadow-sm hover:shadow-md transition-all duration-300"
+                      className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-2 md:mb-3">
                         <div>
-                          <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
+                          <h3 className="font-bold text-gray-900 text-sm md:text-base">Order #{order.id.slice(-6)}</h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <p className="text-sm text-gray-600">Table {order.table_no}</p>
+                            <div className="w-1 h-1 md:w-2 md:h-2 bg-gray-800 rounded-full"></div>
+                            <p className="text-xs md:text-sm text-gray-600">Table {order.table_no}</p>
                           </div>
                         </div>
-                        <Badge className={`${getStatusColor(order.status)} border-0 font-semibold`}>
+                        <Badge className={`${getStatusColor(order.status)} border border-gray-300 text-xs md:text-sm`}>
                           {getStatusIcon(order.status)}
                         </Badge>
                       </div>
 
-                      <div className="space-y-2 mb-4">
-                        {order.items.slice(0, 3).map((item) => (
+                      <div className="space-y-2 mb-3 md:mb-4">
+                        {order.items.slice(0, 2).map((item) => (
                           <div
                             key={item.id}
-                            className="flex justify-between items-center p-2 bg-white/50 rounded-lg"
+                            className="flex justify-between items-center p-2 bg-white rounded"
                           >
-                            <span className="text-sm font-medium text-gray-800">
+                            <span className="text-xs md:text-sm font-medium text-gray-800 truncate">
                               {item.name} <span className="text-gray-500">×{item.qty}</span>
                             </span>
-                            <span className="text-sm font-semibold text-gray-700">
+                            <span className="text-xs md:text-sm font-semibold text-gray-700 whitespace-nowrap ml-2">
                               ₹{(item.price * item.qty).toFixed(2)}
                             </span>
                           </div>
                         ))}
                       </div>
 
-                      <div className="bg-green-100 border border-green-200 rounded-lg p-3 mb-3">
+                      <div className="bg-gray-100 border border-gray-200 rounded p-2 md:p-3 mb-2 md:mb-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-green-800">Ready for Serving</span>
-                          <Timer className="w-4 h-4 text-green-600" />
+                          <span className="text-xs md:text-sm font-semibold text-gray-800">Ready for Serving</span>
+                          <Timer className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
                         </div>
-                        <p className="text-xs text-green-600 mt-1">
+                        <p className="text-xs text-gray-600 mt-1">
                           Order completed and ready for customer
                         </p>
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-green-200">
-                        <span className="font-bold text-gray-900 text-lg">₹{order.total.toFixed(2)}</span>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between pt-2 md:pt-3 border-t border-gray-300 gap-2">
+                        <span className="font-bold text-gray-900 text-sm md:text-base">₹{order.total.toFixed(2)}</span>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button
                             onClick={() => updateOrderStatus(order.id, 'paid')}
                             disabled={updatingOrder === order.id}
-                            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg border-0 font-semibold"
+                            className="bg-gray-800 hover:bg-gray-900 text-white shadow border-0 text-xs md:text-sm w-full md:w-auto"
                             size="sm"
                           >
                             {updatingOrder === order.id ? (
-                              <div className="flex items-center">
+                              <div className="flex items-center justify-center">
                                 <motion.div
                                   animate={{ rotate: 360 }}
                                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                  className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                                 />
                                 Serving...
                               </div>
                             ) : (
                               <>
-                                <Package className="w-4 h-4 mr-1" />
+                                <Package className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                                 Serve
                               </>
                             )}
@@ -576,43 +570,45 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center py-12 text-gray-500"
+                    className="text-center py-6 md:py-12 text-gray-500"
                   >
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
-                    <h3 className="font-semibold text-gray-600 mb-2">All Served</h3>
-                    <p className="text-sm">No orders ready</p>
+                    <CheckCircle className="w-10 h-10 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
+                    <h3 className="font-medium text-gray-600 text-sm md:text-base mb-1 md:mb-2">All Served</h3>
+                    <p className="text-xs md:text-sm">No orders ready</p>
                   </motion.div>
                 )}
               </CardContent>
             </Card>
           </motion.div>
           </div>
+        </div>
 
-          {/* Parcel Orders Pipeline */}
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-            <Package className="w-6 h-6 mr-2 text-blue-600" />
+        {/* Parcel Orders Pipeline */}
+        <div>
+          <h2 className="text-lg md:text-2xl font-bold text-gray-800 mb-3 md:mb-4 flex items-center">
+            <Package className="w-5 h-5 md:w-6 md:h-6 mr-2 text-gray-700" />
             Parcel Orders
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
             {/* Pending Parcels Column */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm h-full">
-                <CardHeader className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white">
+              <Card className="border border-gray-200 shadow h-full">
+                <CardHeader className="bg-gray-800 text-white p-3 md:p-4">
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <AlertTriangle className="w-5 h-5 mr-2" />
-                      Pending Parcels
+                      <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                      <span className="text-sm md:text-base">Pending Parcels</span>
                     </div>
-                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                       {pendingParcelOrders.length}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 space-y-4">
+                <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
                   <AnimatePresence mode="popLayout">
                     {pendingParcelOrders.map((order) => (
                       <motion.div
@@ -621,69 +617,69 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         layout
-                        className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 border-2 border-yellow-200 shadow-sm hover:shadow-md transition-all duration-300"
+                        className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
                       >
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-2 md:mb-3">
                           <div>
-                            <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
+                            <h3 className="font-bold text-gray-900 text-sm md:text-base">Order #{order.id.slice(-6)}</h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                              <p className="text-sm text-gray-600">Phone: {order.customer.phone}</p>
+                              <div className="w-1 h-1 md:w-2 md:h-2 bg-gray-500 rounded-full"></div>
+                              <p className="text-xs md:text-sm text-gray-600">Phone: {order.customer.phone}</p>
                             </div>
                           </div>
-                          <Badge className={`${getStatusColor(order.status)} border-0 font-semibold`}>
+                          <Badge className={`${getStatusColor(order.status)} border border-gray-300 text-xs md:text-sm`}>
                             {getStatusIcon(order.status)}
                           </Badge>
                         </div>
 
-                        <div className="space-y-2 mb-4">
-                          {order.items.slice(0, 3).map((item, index) => (
+                        <div className="space-y-2 mb-3 md:mb-4">
+                          {order.items.slice(0, 2).map((item, index) => (
                             <motion.div
                               key={item.id}
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.1 }}
-                              className="flex justify-between items-center p-2 bg-white/50 rounded-lg"
+                              className="flex justify-between items-center p-2 bg-white rounded"
                             >
-                              <span className="text-sm font-medium text-gray-800">
+                              <span className="text-xs md:text-sm font-medium text-gray-800 truncate">
                                 {item.name} <span className="text-gray-500">×{item.qty}</span>
                               </span>
-                              <span className="text-sm font-semibold text-gray-700">
+                              <span className="text-xs md:text-sm font-semibold text-gray-700 whitespace-nowrap ml-2">
                                 ₹{(item.price * item.qty).toFixed(2)}
                               </span>
                             </motion.div>
                           ))}
-                          {order.items.length > 3 && (
-                            <p className="text-xs text-gray-500 text-center bg-white/30 py-1 rounded">
-                              +{order.items.length - 3} more items
+                          {order.items.length > 2 && (
+                            <p className="text-xs text-gray-500 text-center bg-gray-100 py-1 rounded">
+                              +{order.items.length - 2} more items
                             </p>
                           )}
                         </div>
 
-                        <div className="flex items-center justify-between pt-3 border-t border-yellow-200">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between pt-2 md:pt-3 border-t border-gray-300 gap-2">
                           <div>
-                            <span className="font-bold text-gray-900 text-lg">₹{order.total.toFixed(2)}</span>
+                            <span className="font-bold text-gray-900 text-sm md:text-base">₹{order.total.toFixed(2)}</span>
                             <p className="text-xs text-gray-500">{order.items.length} items</p>
                           </div>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                               onClick={() => updateOrderStatus(order.id, 'preparing')}
                               disabled={updatingOrder === order.id}
-                              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg border-0 font-semibold"
+                              className="bg-gray-800 hover:bg-gray-900 text-white shadow border-0 text-xs md:text-sm w-full md:w-auto"
                               size="sm"
                             >
                               {updatingOrder === order.id ? (
-                                <div className="flex items-center">
+                                <div className="flex items-center justify-center">
                                   <motion.div
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                    className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                                   />
                                   Starting...
                                 </div>
                               ) : (
                                 <>
-                                  <Clock className="w-4 h-4 mr-1" />
+                                  <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                                   Start Prep
                                 </>
                               )}
@@ -698,11 +694,11 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-center py-12 text-gray-500"
+                      className="text-center py-6 md:py-12 text-gray-500"
                     >
-                      <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
-                      <h3 className="font-semibold text-gray-600 mb-2">All Clear!</h3>
-                      <p className="text-sm">No pending parcels</p>
+                      <CheckCircle className="w-10 h-10 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
+                      <h3 className="font-medium text-gray-600 text-sm md:text-base mb-1 md:mb-2">All Clear!</h3>
+                      <p className="text-xs md:text-sm">No pending parcels</p>
                     </motion.div>
                   )}
                 </CardContent>
@@ -715,19 +711,19 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm h-full">
-                <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+              <Card className="border border-gray-200 shadow h-full">
+                <CardHeader className="bg-gray-800 text-white p-3 md:p-4">
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <Clock className="w-5 h-5 mr-2" />
-                      Preparing Parcels
+                      <Clock className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                      <span className="text-sm md:text-base">Preparing Parcels</span>
                     </div>
-                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                       {preparingParcelOrders.length}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 space-y-4">
+                <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
                   <AnimatePresence mode="popLayout">
                     {preparingParcelOrders.map((order) => (
                       <motion.div
@@ -736,66 +732,66 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         layout
-                        className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border-2 border-blue-200 shadow-sm hover:shadow-md transition-all duration-300"
+                        className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
                       >
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-2 md:mb-3">
                           <div>
-                            <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
+                            <h3 className="font-bold text-gray-900 text-sm md:text-base">Order #{order.id.slice(-6)}</h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                              <p className="text-sm text-gray-600">Phone: {order.customer.phone}</p>
+                              <div className="w-1 h-1 md:w-2 md:h-2 bg-gray-800 rounded-full animate-pulse"></div>
+                              <p className="text-xs md:text-sm text-gray-600">Phone: {order.customer.phone}</p>
                             </div>
                           </div>
-                          <Badge className={`${getStatusColor(order.status)} border-0 font-semibold`}>
+                          <Badge className={`${getStatusColor(order.status)} border border-gray-300 text-xs md:text-sm`}>
                             {getStatusIcon(order.status)}
                           </Badge>
                         </div>
 
-                        <div className="space-y-2 mb-4">
-                          {order.items.slice(0, 3).map((item, index) => (
+                        <div className="space-y-2 mb-3 md:mb-4">
+                          {order.items.slice(0, 2).map((item, index) => (
                             <div
                               key={item.id}
-                              className="flex justify-between items-center p-2 bg-white/50 rounded-lg"
+                              className="flex justify-between items-center p-2 bg-white rounded"
                             >
-                              <span className="text-sm font-medium text-gray-800">
+                              <span className="text-xs md:text-sm font-medium text-gray-800 truncate">
                                 {item.name} <span className="text-gray-500">×{item.qty}</span>
                               </span>
-                              <span className="text-sm font-semibold text-gray-700">
+                              <span className="text-xs md:text-sm font-semibold text-gray-700 whitespace-nowrap ml-2">
                                 ₹{(item.price * item.qty).toFixed(2)}
                               </span>
                             </div>
                           ))}
                         </div>
 
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-sm">
+                        <div className="space-y-2 md:space-y-3 mb-3">
+                          <div className="flex justify-between text-xs md:text-sm">
                             <span className="text-gray-600">Progress</span>
-                            <span className="font-semibold text-blue-600">50%</span>
+                            <span className="font-semibold text-gray-700">50%</span>
                           </div>
-                          <Progress value={50} className="h-2 bg-blue-200" />
+                          <Progress value={50} className="h-1 md:h-2 bg-gray-200" />
                         </div>
 
-                        <div className="flex items-center justify-between pt-3 border-t border-blue-200">
-                          <span className="font-bold text-gray-900 text-lg">₹{order.total.toFixed(2)}</span>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between pt-2 md:pt-3 border-t border-gray-300 gap-2">
+                          <span className="font-bold text-gray-900 text-sm md:text-base">₹{order.total.toFixed(2)}</span>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                               onClick={() => updateOrderStatus(order.id, 'completed')}
                               disabled={updatingOrder === order.id}
-                              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg border-0 font-semibold"
+                              className="bg-gray-800 hover:bg-gray-900 text-white shadow border-0 text-xs md:text-sm w-full md:w-auto"
                               size="sm"
                             >
                               {updatingOrder === order.id ? (
-                                <div className="flex items-center">
+                                <div className="flex items-center justify-center">
                                   <motion.div
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                    className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                                   />
                                   Completing...
                                 </div>
                               ) : (
                                 <>
-                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  <CheckCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                                   Mark Ready
                                 </>
                               )}
@@ -810,11 +806,11 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-center py-12 text-gray-500"
+                      className="text-center py-6 md:py-12 text-gray-500"
                     >
-                      <Clock className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-                      <h3 className="font-semibold text-gray-600 mb-2">Kitchen Ready</h3>
-                      <p className="text-sm">No parcels in preparation</p>
+                      <Clock className="w-10 h-10 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
+                      <h3 className="font-medium text-gray-600 text-sm md:text-base mb-1 md:mb-2">Kitchen Ready</h3>
+                      <p className="text-xs md:text-sm">No parcels in preparation</p>
                     </motion.div>
                   )}
                 </CardContent>
@@ -827,19 +823,19 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm h-full">
-                <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+              <Card className="border border-gray-200 shadow h-full">
+                <CardHeader className="bg-gray-800 text-white p-3 md:p-4">
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                      Ready Parcels
+                      <CheckCircle className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                      <span className="text-sm md:text-base">Ready Parcels</span>
                     </div>
-                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                       {completedParcelOrders.length}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 space-y-4">
+                <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
                   <AnimatePresence mode="popLayout">
                     {completedParcelOrders.map((order) => (
                       <motion.div
@@ -848,68 +844,68 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         layout
-                        className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 border-2 border-green-200 shadow-sm hover:shadow-md transition-all duration-300"
+                        className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
                       >
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-2 md:mb-3">
                           <div>
-                            <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
+                            <h3 className="font-bold text-gray-900 text-sm md:text-base">Order #{order.id.slice(-6)}</h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <p className="text-sm text-gray-600">Phone: {order.customer.phone}</p>
+                              <div className="w-1 h-1 md:w-2 md:h-2 bg-gray-800 rounded-full"></div>
+                              <p className="text-xs md:text-sm text-gray-600">Phone: {order.customer.phone}</p>
                             </div>
                           </div>
-                          <Badge className={`${getStatusColor(order.status)} border-0 font-semibold`}>
+                          <Badge className={`${getStatusColor(order.status)} border border-gray-300 text-xs md:text-sm`}>
                             {getStatusIcon(order.status)}
                           </Badge>
                         </div>
 
-                        <div className="space-y-2 mb-4">
-                          {order.items.slice(0, 3).map((item) => (
+                        <div className="space-y-2 mb-3 md:mb-4">
+                          {order.items.slice(0, 2).map((item) => (
                             <div
                               key={item.id}
-                              className="flex justify-between items-center p-2 bg-white/50 rounded-lg"
+                              className="flex justify-between items-center p-2 bg-white rounded"
                             >
-                              <span className="text-sm font-medium text-gray-800">
+                              <span className="text-xs md:text-sm font-medium text-gray-800 truncate">
                                 {item.name} <span className="text-gray-500">×{item.qty}</span>
                               </span>
-                              <span className="text-sm font-semibold text-gray-700">
+                              <span className="text-xs md:text-sm font-semibold text-gray-700 whitespace-nowrap ml-2">
                                 ₹{(item.price * item.qty).toFixed(2)}
                               </span>
                             </div>
                           ))}
                         </div>
 
-                        <div className="bg-green-100 border border-green-200 rounded-lg p-3 mb-3">
+                        <div className="bg-gray-100 border border-gray-200 rounded p-2 md:p-3 mb-2 md:mb-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-semibold text-green-800">Ready for Pickup</span>
-                            <Timer className="w-4 h-4 text-green-600" />
+                            <span className="text-xs md:text-sm font-semibold text-gray-800">Ready for Pickup</span>
+                            <Timer className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
                           </div>
-                          <p className="text-xs text-green-600 mt-1">
+                          <p className="text-xs text-gray-600 mt-1">
                             Parcel completed and ready for customer pickup
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between pt-3 border-t border-green-200">
-                          <span className="font-bold text-gray-900 text-lg">₹{order.total.toFixed(2)}</span>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between pt-2 md:pt-3 border-t border-gray-300 gap-2">
+                          <span className="font-bold text-gray-900 text-sm md:text-base">₹{order.total.toFixed(2)}</span>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                               onClick={() => updateOrderStatus(order.id, 'paid')}
                               disabled={updatingOrder === order.id}
-                              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg border-0 font-semibold"
+                              className="bg-gray-800 hover:bg-gray-900 text-white shadow border-0 text-xs md:text-sm w-full md:w-auto"
                               size="sm"
                             >
                               {updatingOrder === order.id ? (
-                                <div className="flex items-center">
+                                <div className="flex items-center justify-center">
                                   <motion.div
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                    className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                                   />
                                   Serving...
                                 </div>
                               ) : (
                                 <>
-                                  <Package className="w-4 h-4 mr-1" />
+                                  <Package className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                                   Mark Picked
                                 </>
                               )}
@@ -924,19 +920,17 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-center py-12 text-gray-500"
+                      className="text-center py-6 md:py-12 text-gray-500"
                     >
-                      <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-400" />
-                      <h3 className="font-semibold text-gray-600 mb-2">All Picked</h3>
-                      <p className="text-sm">No parcels ready</p>
+                      <CheckCircle className="w-10 h-10 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
+                      <h3 className="font-medium text-gray-600 text-sm md:text-base mb-1 md:mb-2">All Picked</h3>
+                      <p className="text-xs md:text-sm">No parcels ready</p>
                     </motion.div>
                   )}
                 </CardContent>
               </Card>
             </motion.div>
           </div>
-
-
         </div>
 
         {/* Real-time Status Bar */}
@@ -944,12 +938,13 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
+          className="mt-6 md:mt-8"
         >
-          <Alert className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <div className="flex items-center justify-between w-full">
+          <Alert className="border border-gray-200 shadow bg-white">
+            <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-3">
               <div className="flex items-center gap-3">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                <AlertDescription className="text-gray-700">
+                <TrendingUp className="h-4 w-4 text-gray-600" />
+                <AlertDescription className="text-gray-700 text-sm">
                   Real-time dashboard • Last updated: {lastUpdated.toLocaleTimeString()}
                 </AlertDescription>
               </div>
@@ -958,9 +953,9 @@ const response = await fetch(`${API_BASE}orders/${orderId}/`, {
                   onClick={fetchOrders}
                   variant="outline"
                   size="sm"
-                  className="border-green-200 text-green-700 hover:bg-green-50"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 w-full md:w-auto text-xs md:text-sm"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-3 h-3 md:w-4 h-4 mr-2" />
                   Refresh Now
                 </Button>
               </motion.div>

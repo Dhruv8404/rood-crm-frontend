@@ -27,7 +27,6 @@ import {
   ArrowLeft,
   Edit,
   Receipt,
-  Sparkles,
   ChefHat,
   CheckCircle,
   Clock,
@@ -46,12 +45,31 @@ export default function AdminOrders() {
   const [deletingOrder, setDeletingOrder] = useState<string | null>(null)
   const [billingCustomer, setBillingCustomer] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
+    loadOrders()
+  }, [])
 
-  const sortedOrders = [...state.orders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  const loadOrders = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      await fetchOrders()
+    } catch (err) {
+      console.error('Error loading orders:', err)
+      setError('Failed to load orders. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const sortedOrders = useMemo(() => {
+    return [...state.orders].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+  }, [state.orders])
 
   // Group orders by customer phone
   const ordersByCustomer = useMemo(() => {
@@ -68,24 +86,25 @@ export default function AdminOrders() {
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    await fetchOrders()
+    await loadOrders()
     setTimeout(() => setRefreshing(false), 1000)
   }
 
   const handleEditOrder = (orderId: string, currentTableNo: string, currentItems: any[]) => {
     setEditingOrder(orderId)
     setEditTableNo(currentTableNo || '')
-    setEditItems([...currentItems])
+    setEditItems([...currentItems.map(item => ({ ...item }))])
   }
 
   const saveEditOrder = async () => {
     if (!editingOrder || !state.token) return
+    
     try {
       const data: any = {}
       if (editTableNo !== '') data.table_no = editTableNo
       if (editItems.length > 0) data.items = editItems
-     const response = await fetch(API_BASE + `orders/${editingOrder}/`, {
 
+      const response = await fetch(`${API_BASE}orders/${editingOrder}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -93,17 +112,19 @@ export default function AdminOrders() {
         },
         body: JSON.stringify(data)
       })
+      
       if (response.ok) {
         await fetchOrders()
         setEditingOrder(null)
         setEditTableNo('')
         setEditItems([])
       } else {
-        alert('Failed to update order')
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to update order')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating order:', error)
-      alert('Error updating order')
+      alert(error.message || 'Error updating order')
     }
   }
 
@@ -139,31 +160,35 @@ export default function AdminOrders() {
   const handleDeleteOrder = async (orderId: string) => {
     if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) return
     setDeletingOrder(orderId)
+    
     try {
-     const response = await fetch(API_BASE + `orders/${orderId}/`, {
-
+      const response = await fetch(`${API_BASE}orders/${orderId}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${state.token}`
         }
       })
+      
       if (response.ok) {
         await fetchOrders()
       } else {
-        alert('Failed to delete order')
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to delete order')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting order:', error)
-      alert('Error deleting order')
+      alert(error.message || 'Error deleting order')
     }
+    
     setDeletingOrder(null)
   }
 
   const handleBillCustomer = async (customerPhone: string) => {
+    if (!confirm(`Bill customer ${customerPhone} for all unpaid orders?`)) return
     setBillingCustomer(customerPhone)
+    
     try {
-     const response = await fetch(API_BASE + 'customers/bill/', {
-
+      const response = await fetch(`${API_BASE}customers/bill/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,38 +196,30 @@ export default function AdminOrders() {
         },
         body: JSON.stringify({ phone: customerPhone })
       })
+      
       if (response.ok) {
         const data = await response.json()
         alert(`Customer ${customerPhone} billed successfully! Total: ₹${data.total_bill.toFixed(2)}`)
         await fetchOrders()
       } else {
-        const error = await response.json()
-        alert(`Failed to bill customer: ${error.error}`)
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to bill customer')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error billing customer:', error)
-      alert('Error billing customer')
+      alert(error.message || 'Error billing customer')
     }
+    
     setBillingCustomer(null)
-  }
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'paid': return 'default'
-      case 'preparing': return 'secondary'
-      case 'completed': return 'default'
-      case 'pending': return 'outline'
-      default: return 'outline'
-    }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800 border-green-200'
-      case 'preparing': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200'
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'paid': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      case 'preparing': return 'bg-blue-50 text-blue-700 border-blue-200'
+      case 'completed': return 'bg-gray-50 text-gray-700 border-gray-200'
+      case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200'
+      default: return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
@@ -216,165 +233,156 @@ export default function AdminOrders() {
     }
   }
 
+  const getTotalUnpaidAmount = (orders: any[]) => {
+    return orders
+      .filter(order => order.status !== 'paid')
+      .reduce((sum, order) => sum + order.total, 0)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading orders...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
-          <div className="flex items-center gap-4">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
               <Link to="/admin">
-                <Button variant="outline" size="sm" className="rounded-full border-2 border-purple-200 bg-white/80 backdrop-blur-sm">
+                <Button variant="outline" size="sm" className="border-gray-300">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Admin
                 </Button>
               </Link>
-            </motion.div>
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-white/80 backdrop-blur-sm p-3 shadow-lg border border-purple-200">
-                  <Receipt className="h-6 w-6 text-purple-600" />
-                </div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Customer Billing
-                </h1>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Customer Billing</h1>
+                <p className="text-gray-600 mt-1">Manage customer orders and process payments</p>
               </div>
-              <p className="text-lg text-muted-foreground mt-2">
-                Manage customer orders and process payments
-              </p>
             </div>
-          </div>
-          
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            
             <Button
               onClick={handleRefresh}
               disabled={refreshing}
               variant="outline"
-              className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              size="sm"
+              className="border-gray-300"
             >
-              {refreshing ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"
-                />
-              ) : (
-                <RefreshCw className="w-4 h-4 mr-2" />
-              )}
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-          </motion.div>
-        </motion.div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+        </div>
 
         {/* Stats Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6"
-        >
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="border border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-purple-600 mb-1">Total Customers</p>
-                  <p className="text-3xl font-bold text-gray-900">{Object.keys(ordersByCustomer).length}</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Customers</p>
+                  <p className="text-2xl font-bold text-gray-900">{Object.keys(ordersByCustomer).length}</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Users className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-gray-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+          <Card className="border border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-blue-600 mb-1">Active Orders</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Active Orders</p>
+                  <p className="text-2xl font-bold text-gray-900">
                     {sortedOrders.filter(o => o.status !== 'paid').length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <ChefHat className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <ChefHat className="w-5 h-5 text-gray-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+          <Card className="border border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-600 mb-1">Completed</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900">
                     {sortedOrders.filter(o => o.status === 'completed').length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <CheckCircle className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-gray-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+          <Card className="border border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-orange-600 mb-1">Pending Payment</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-gray-600 mb-1">Pending Payment</p>
+                  <p className="text-2xl font-bold text-gray-900">
                     {sortedOrders.filter(o => o.status === 'completed').length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <CreditCard className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-gray-600" />
                 </div>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Customer Orders */}
         <div className="space-y-6">
           <AnimatePresence>
-            {Object.entries(ordersByCustomer).map(([customerPhone, orders], index) => {
+            {Object.entries(ordersByCustomer).map(([customerPhone, orders]) => {
               const totalAmount = orders.reduce((sum, order) => sum + order.total, 0)
               const unpaidOrders = orders.filter(order => order.status !== 'paid')
               const customerEmail = orders[0]?.customer.email || ''
+              const unpaidAmount = getTotalUnpaidAmount(orders)
 
               return (
                 <motion.div
                   key={customerPhone}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
-                  <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-                      <div className="flex items-center justify-between">
+                  <Card className="border border-gray-200">
+                    <CardHeader className="bg-gray-50 border-b">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                          <CardTitle className="text-2xl flex items-center gap-3">
-                            <Users className="w-6 h-6" />
-                            Customer Orders
-                          </CardTitle>
-                          <CardDescription className="text-blue-100">
-                            <div className="flex items-center gap-4 mt-2">
-                              <div className="flex items-center gap-2">
-                                <Phone className="w-4 h-4" />
-                                <span>{customerPhone}</span>
+                          <CardTitle className="text-lg font-semibold">Customer Orders</CardTitle>
+                          <CardDescription className="mt-2">
+                            <div className="flex flex-wrap gap-4">
+                              <div className="flex items-center gap-2 text-sm">
+                                <Phone className="w-3 h-3" />
+                                <span className="font-medium">{customerPhone}</span>
                               </div>
                               {customerEmail && (
-                                <div className="flex items-center gap-2">
-                                  <Mail className="w-4 h-4" />
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Mail className="w-3 h-3" />
                                   <span>{customerEmail}</span>
                                 </div>
                               )}
@@ -382,38 +390,37 @@ export default function AdminOrders() {
                           </CardDescription>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold">₹{totalAmount.toFixed(2)}</div>
-                          <div className="text-blue-100 text-sm">
+                          <div className="text-xl font-bold text-gray-900">₹{totalAmount.toFixed(2)}</div>
+                          <div className="text-sm text-gray-600">
                             {orders.length} order{orders.length > 1 ? 's' : ''}
                           </div>
                         </div>
                       </div>
                     </CardHeader>
+                    
                     <CardContent className="p-6">
                       <div className="space-y-4">
                         {orders.map((order) => (
-                          <motion.div
+                          <div
                             key={order.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="border-2 border-gray-200 rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white hover:shadow-lg transition-all duration-300"
+                            className="border border-gray-200 rounded-lg p-4 bg-white"
                           >
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-4">
-                                <div className="bg-blue-100 rounded-xl p-3">
-                                  <Receipt className="w-5 h-5 text-blue-600" />
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="bg-gray-100 rounded-lg p-2">
+                                  <Receipt className="w-4 h-4 text-gray-600" />
                                 </div>
                                 <div>
-                                  <h3 className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6)}</h3>
-                                  <div className="flex items-center gap-3 mt-1">
+                                  <h3 className="font-semibold text-gray-900">Order #{order.id.slice(-6)}</h3>
+                                  <div className="flex flex-wrap gap-2 mt-1">
                                     <Badge 
-                                      className={`${getStatusColor(order.status)} border-2 font-semibold flex items-center gap-1`}
+                                      className={`${getStatusColor(order.status)} border font-medium flex items-center gap-1`}
                                     >
                                       {getStatusIcon(order.status)}
                                       <span className="capitalize">{order.status}</span>
                                     </Badge>
                                     {order.table_no && (
-                                      <Badge variant="outline" className="bg-white text-gray-700">
+                                      <Badge variant="outline" className="bg-white">
                                         Table {order.table_no}
                                       </Badge>
                                     )}
@@ -421,24 +428,24 @@ export default function AdminOrders() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="text-2xl font-bold text-gray-900">₹{order.total.toFixed(2)}</div>
-                                <div className="text-sm text-gray-500">
-                                  {new Date(order.created_at).toLocaleDateString()}
+                                <div className="text-lg font-bold text-gray-900">₹{order.total.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(order.created_at).toLocaleDateString('en-IN')}
                                 </div>
                               </div>
                             </div>
 
                             {/* Order Items */}
-                            <div className="grid gap-2 mb-4">
+                            <div className="space-y-2 mb-4">
                               {order.items.map((item, itemIndex) => (
-                                <div key={itemIndex} className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                <div key={itemIndex} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                   <div>
-                                    <span className="font-medium text-gray-900">{item.name}</span>
-                                    <div className="text-sm text-gray-600">
+                                    <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                                    <div className="text-xs text-gray-600">
                                       ₹{item.price.toFixed(2)} × {item.qty}
                                     </div>
                                   </div>
-                                  <span className="font-semibold text-gray-900">
+                                  <span className="text-sm font-semibold text-gray-900">
                                     ₹{(item.price * item.qty).toFixed(2)}
                                   </span>
                                 </div>
@@ -446,46 +453,40 @@ export default function AdminOrders() {
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex gap-3 pt-4 border-t border-gray-200">
+                            <div className="flex gap-2 pt-4 border-t">
                               <Dialog open={editingOrder === order.id} onOpenChange={(open) => !open && setEditingOrder(null)}>
                                 <DialogTrigger asChild>
-                                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      onClick={() => handleEditOrder(order.id, order.table_no || '', order.items)}
-                                      className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                                    >
-                                      <Edit className="w-4 h-4 mr-2" />
-                                      Edit Order
-                                    </Button>
-                                  </motion.div>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleEditOrder(order.id, order.table_no || '', order.items)}
+                                    className="flex-1 sm:flex-none"
+                                  >
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Edit
+                                  </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-2xl border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
+                                <DialogContent className="max-w-md sm:max-w-2xl">
                                   <DialogHeader>
-                                    <DialogTitle className="text-2xl flex items-center gap-2">
-                                      <Edit className="w-6 h-6" />
-                                      Edit Order #{order.id.slice(-6)}
-                                    </DialogTitle>
+                                    <DialogTitle>Edit Order #{order.id.slice(-6)}</DialogTitle>
                                     <DialogDescription>
                                       Update table number and modify order items
                                     </DialogDescription>
                                   </DialogHeader>
-                                  <div className="space-y-6">
-                                    <div className="space-y-3">
-                                      <Label htmlFor="tableNo" className="font-semibold">Table Number</Label>
+                                  <div className="space-y-4">
+                                    <div className="space-y-2">
+                                      <Label htmlFor="tableNo">Table Number</Label>
                                       <Input
                                         id="tableNo"
                                         value={editTableNo}
                                         onChange={(e) => setEditTableNo(e.target.value)}
                                         placeholder="Enter table number"
-                                        className="h-12 border-2 border-gray-200 rounded-xl"
                                       />
                                     </div>
-                                    <div className="space-y-3">
-                                      <Label className="font-semibold">Add New Item</Label>
+                                    <div className="space-y-2">
+                                      <Label>Add New Item</Label>
                                       <Select onValueChange={addNewItem}>
-                                        <SelectTrigger className="h-12 border-2 border-gray-200 rounded-xl">
+                                        <SelectTrigger>
                                           <SelectValue placeholder="Select a dish to add" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -493,20 +494,20 @@ export default function AdminOrders() {
                                             <SelectItem key={item.id} value={item.id}>
                                               <div className="flex items-center justify-between">
                                                 <span>{item.name}</span>
-                                                <span className="text-green-600 font-semibold">₹{item.price.toFixed(2)}</span>
+                                                <span className="text-green-600 font-medium">₹{item.price.toFixed(2)}</span>
                                               </div>
                                             </SelectItem>
                                           ))}
                                         </SelectContent>
                                       </Select>
                                     </div>
-                                    <div className="space-y-3">
-                                      <Label className="font-semibold">Order Items</Label>
-                                      <div className="space-y-3 max-h-60 overflow-y-auto p-2">
+                                    <div className="space-y-2">
+                                      <Label>Order Items</Label>
+                                      <div className="space-y-2 max-h-60 overflow-y-auto">
                                         {editItems.map((item, index) => (
-                                          <div key={index} className="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-xl bg-white">
+                                          <div key={index} className="flex items-center gap-2 p-2 border rounded">
                                             <div className="flex-1">
-                                              <div className="font-medium text-gray-900">{item.name}</div>
+                                              <div className="font-medium">{item.name}</div>
                                               <div className="text-sm text-gray-600">₹{item.price.toFixed(2)} each</div>
                                             </div>
                                             <Input
@@ -514,29 +515,25 @@ export default function AdminOrders() {
                                               min="0"
                                               value={item.qty}
                                               onChange={(e) => updateItemQty(index, parseInt(e.target.value) || 0)}
-                                              className="w-20 h-9 text-center"
+                                              className="w-16 text-center"
                                             />
-                                            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                                              <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                onClick={() => updateItemQty(index, 0)}
-                                                className="h-9 w-9 p-0"
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                              </Button>
-                                            </motion.div>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => updateItemQty(index, 0)}
+                                              className="h-8 w-8 p-0"
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
                                           </div>
                                         ))}
                                       </div>
                                     </div>
-                                    <div className="flex gap-3">
-                                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                        <Button onClick={saveEditOrder} className="bg-green-600 hover:bg-green-700 text-white">
-                                          Save Changes
-                                        </Button>
-                                      </motion.div>
-                                      <Button variant="outline" onClick={() => setEditingOrder(null)}>
+                                    <div className="flex gap-2">
+                                      <Button onClick={saveEditOrder} className="flex-1">
+                                        Save Changes
+                                      </Button>
+                                      <Button variant="outline" onClick={() => setEditingOrder(null)} className="flex-1">
                                         Cancel
                                       </Button>
                                     </div>
@@ -544,58 +541,45 @@ export default function AdminOrders() {
                                 </DialogContent>
                               </Dialog>
 
-                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleDeleteOrder(order.id)}
-                                  disabled={deletingOrder === order.id}
-                                  className="border-0"
-                                >
-                                  {deletingOrder === order.id ? (
-                                    <motion.div
-                                      animate={{ rotate: 360 }}
-                                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                                    />
-                                  ) : (
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                  )}
-                                  Delete
-                                </Button>
-                              </motion.div>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteOrder(order.id)}
+                                disabled={deletingOrder === order.id}
+                                className="flex-1 sm:flex-none"
+                              >
+                                {deletingOrder === order.id ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                )}
+                                Delete
+                              </Button>
                             </div>
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
 
                       {/* Bill Customer Button */}
                       {unpaidOrders.length > 0 && (
-                        <div className="flex justify-end pt-6 mt-6 border-t border-gray-200">
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                              onClick={() => handleBillCustomer(customerPhone)}
-                              disabled={billingCustomer === customerPhone}
-                              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg px-8 py-3 font-semibold rounded-xl"
-                              size="lg"
-                            >
-                              {billingCustomer === customerPhone ? (
-                                <div className="flex items-center">
-                                  <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
-                                  />
-                                  Processing Bill...
-                                </div>
-                              ) : (
-                                <div className="flex items-center">
-                                  <CreditCard className="w-5 h-5 mr-2" />
-                                  Bill Customer - ₹{unpaidOrders.reduce((sum, o) => sum + o.total, 0).toFixed(2)}
-                                </div>
-                              )}
-                            </Button>
-                          </motion.div>
+                        <div className="flex justify-end pt-4 mt-4 border-t">
+                          <Button
+                            onClick={() => handleBillCustomer(customerPhone)}
+                            disabled={billingCustomer === customerPhone}
+                            className="bg-gray-900 hover:bg-gray-800 text-white"
+                          >
+                            {billingCustomer === customerPhone ? (
+                              <div className="flex items-center">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                Processing...
+                              </div>
+                            ) : (
+                              <div className="flex items-center">
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Bill Customer - ₹{unpaidAmount.toFixed(2)}
+                              </div>
+                            )}
+                          </Button>
                         </div>
                       )}
                     </CardContent>
@@ -606,20 +590,16 @@ export default function AdminOrders() {
           </AnimatePresence>
 
           {/* Empty State */}
-          {Object.keys(ordersByCustomer).length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-16"
-            >
-              <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <Receipt className="w-12 h-12 text-gray-400" />
+          {Object.keys(ordersByCustomer).length === 0 && !loading && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Receipt className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-600 mb-3">No Orders Found</h3>
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">No Orders Found</h3>
               <p className="text-gray-500 max-w-md mx-auto">
-                There are no customer orders to display at the moment. Orders will appear here when customers place them.
+                There are no customer orders to display at the moment.
               </p>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>

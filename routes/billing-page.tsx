@@ -1,6 +1,5 @@
 "use client"
 import { API_BASE } from "@/config/api"
-
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { useApp } from "@/context/app-context"
@@ -27,7 +26,9 @@ import {
   Clock,
   ChefHat,
   Sparkles,
-  Send
+  Send,
+  Phone,
+  RefreshCw
 } from "lucide-react"
 
 export default function BillingPage() {
@@ -55,10 +56,13 @@ export default function BillingPage() {
   const preparingBills = unpaidBills.filter(bill => bill.status === 'preparing')
 
   const handleMarkPaid = async (orderId: string) => {
+    if (!window.confirm('Are you sure you want to mark this bill as paid?')) {
+      return
+    }
+    
     setMarkingPaid(orderId)
     try {
-      const response = await fetch(API_BASE + `orders/${orderId}/`, {
-
+      const response = await fetch(`${API_BASE}orders/${orderId}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -81,8 +85,7 @@ export default function BillingPage() {
   const handleSendBill = async (orderId: string) => {
     setSendingBill(orderId)
     try {
-      const response = await fetch(API_BASE + `send_bill_email/`, {
-
+      const response = await fetch(`${API_BASE}send_bill_email/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,66 +106,60 @@ export default function BillingPage() {
     setSendingBill(null)
   }
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'completed': return 'default'
-      case 'preparing': return 'secondary'
-      case 'pending': return 'outline'
-      default: return 'outline'
-    }
-  }
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200'
-      case 'preparing': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'completed': return 'bg-gray-100 text-gray-800'
+      case 'preparing': return 'bg-gray-100 text-gray-800'
+      case 'pending': return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle2 className="w-4 h-4" />
-      case 'preparing': return <ChefHat className="w-4 h-4" />
-      case 'pending': return <Clock className="w-4 h-4" />
-      default: return <Clock className="w-4 h-4" />
+      case 'completed': return <CheckCircle2 className="w-3 h-3" />
+      case 'preparing': return <ChefHat className="w-3 h-3" />
+      case 'pending': return <Clock className="w-3 h-3" />
+      default: return <Clock className="w-3 h-3" />
     }
   }
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <section className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 md:py-8 px-3 md:px-4">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
+          className="mb-4 md:mb-8"
         >
-          <div className="flex items-center gap-4">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link to="/admin">
-                <Button variant="outline" size="sm" className="rounded-full border-2 border-purple-200 bg-white/80 backdrop-blur-sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Admin
-                </Button>
-              </Link>
-            </motion.div>
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-white/80 backdrop-blur-sm p-3 shadow-lg border border-purple-200">
-                  <Receipt className="h-6 w-6 text-purple-600" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link to="/admin">
+                  <Button variant="outline" size="sm" className="rounded-lg border border-gray-300 bg-white">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <span className="hidden md:inline">Back to Admin</span>
+                    <span className="md:hidden">Back</span>
+                  </Button>
+                </Link>
+              </motion.div>
+              <div>
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="rounded-lg md:rounded-xl bg-white p-2 md:p-3 shadow border border-gray-200">
+                    <Receipt className="h-5 w-5 md:h-6 md:w-6 text-gray-700" />
+                  </div>
+                  <h1 className="text-xl md:text-4xl font-bold text-gray-900">
+                    Billing Management
+                  </h1>
                 </div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Billing Management
-                </h1>
+                <p className="text-sm md:text-lg text-gray-600 mt-1 md:mt-2">
+                  Manage customer bills and payments efficiently
+                </p>
               </div>
-              <p className="text-lg text-muted-foreground mt-2">
-                Manage customer bills and payments efficiently
-              </p>
             </div>
           </div>
         </motion.div>
@@ -172,57 +169,57 @@ export default function BillingPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-4 md:mb-8"
         >
           {/* Total Unpaid Amount */}
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-purple-600 mb-1">Total Unpaid</p>
-                  <p className="text-3xl font-bold text-gray-900">₹{totalUnpaidAmount.toFixed(2)}</p>
-                  <p className="text-sm text-purple-600 mt-1">
+                  <p className="text-xs md:text-sm font-medium text-gray-700 mb-1">Total Unpaid</p>
+                  <p className="text-lg md:text-3xl font-bold text-gray-900">₹{totalUnpaidAmount.toFixed(2)}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Across {unpaidBills.length} bills
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <DollarSign className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-lg md:rounded-xl flex items-center justify-center shadow">
+                  <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Ready for Payment */}
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-600 mb-1">Ready for Payment</p>
-                  <p className="text-3xl font-bold text-gray-900">{completedBills.length}</p>
-                  <p className="text-sm text-green-600 mt-1">
+                  <p className="text-xs md:text-sm font-medium text-gray-700 mb-1">Ready for Payment</p>
+                  <p className="text-lg md:text-3xl font-bold text-gray-900">{completedBills.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Orders completed
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <CheckCircle2 className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-lg md:rounded-xl flex items-center justify-center shadow">
+                  <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* In Preparation */}
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-blue-600 mb-1">In Preparation</p>
-                  <p className="text-3xl font-bold text-gray-900">{preparingBills.length}</p>
-                  <p className="text-sm text-blue-600 mt-1">
+                  <p className="text-xs md:text-sm font-medium text-gray-700 mb-1">In Preparation</p>
+                  <p className="text-lg md:text-3xl font-bold text-gray-900">{preparingBills.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mt-1">
                     Being prepared
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <ChefHat className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-800 rounded-lg md:rounded-xl flex items-center justify-center shadow">
+                  <ChefHat className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
               </div>
             </CardContent>
@@ -235,16 +232,18 @@ export default function BillingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-              <CardTitle className="text-2xl flex items-center gap-3">
-                <Receipt className="w-6 h-6" />
-                Unpaid Bills
-                <Badge variant="secondary" className="bg-white/20 text-white border-0 ml-2">
+          <Card className="border border-gray-200 shadow-lg bg-white">
+            <CardHeader className="bg-gray-800 text-white p-3 md:p-6">
+              <CardTitle className="text-lg md:text-2xl flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                <div className="flex items-center">
+                  <Receipt className="w-5 h-5 md:w-6 md:h-6 mr-2" />
+                  <span>Unpaid Bills</span>
+                </div>
+                <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs md:text-sm">
                   {unpaidBills.length} bills
                 </Badge>
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-gray-200 text-sm md:text-base">
                 Manage and process customer payments
               </CardDescription>
             </CardHeader>
@@ -253,27 +252,27 @@ export default function BillingPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="font-semibold text-gray-700">Customer Details</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Table No</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Order Items</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Amount</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                      <TableHead className="font-semibold text-gray-700 text-right">Actions</TableHead>
+                      <TableHead className="font-medium text-gray-700 text-xs md:text-sm">Customer Details</TableHead>
+                      <TableHead className="font-medium text-gray-700 text-xs md:text-sm hidden md:table-cell">Table</TableHead>
+                      <TableHead className="font-medium text-gray-700 text-xs md:text-sm">Items</TableHead>
+                      <TableHead className="font-medium text-gray-700 text-xs md:text-sm">Amount</TableHead>
+                      <TableHead className="font-medium text-gray-700 text-xs md:text-sm">Status</TableHead>
+                      <TableHead className="font-medium text-gray-700 text-xs md:text-sm text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     <AnimatePresence mode="popLayout">
                       {unpaidBills.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-12">
+                          <TableCell colSpan={6} className="text-center py-8 md:py-12">
                             <motion.div
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               className="text-center"
                             >
-                              <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                              <h3 className="text-lg font-semibold text-gray-600 mb-2">All Bills Paid!</h3>
-                              <p className="text-gray-500">No unpaid bills at the moment</p>
+                              <CheckCircle2 className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-3 md:mb-4" />
+                              <h3 className="text-base md:text-lg font-semibold text-gray-600 mb-1 md:mb-2">All Bills Paid!</h3>
+                              <p className="text-gray-500 text-sm md:text-base">No unpaid bills at the moment</p>
                             </motion.div>
                           </TableCell>
                         </TableRow>
@@ -285,122 +284,123 @@ export default function BillingPage() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ delay: index * 0.1 }}
-                            className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors"
+                            className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                           >
-                            <TableCell>
+                            <TableCell className="py-3 md:py-4">
                               <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <Users className="w-4 h-4 text-gray-500" />
-                                  <span className="font-medium text-gray-900">
+                                <div className="flex items-center gap-1 md:gap-2">
+                                  <Phone className="w-3 h-3 md:w-4 h-4 text-gray-500 flex-shrink-0" />
+                                  <span className="font-medium text-gray-900 text-xs md:text-sm truncate">
                                     {bill.customer?.phone || "N/A"}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <Mail className="w-4 h-4 text-gray-500" />
-                                  <span className="text-sm text-gray-600 truncate max-w-[200px]">
+                                <div className="flex items-center gap-1 md:gap-2">
+                                  <Mail className="w-3 h-3 md:w-4 h-4 text-gray-500 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 truncate max-w-[120px] md:max-w-[200px]">
                                     {bill.customer?.email || "N/A"}
                                   </span>
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="py-3 md:py-4 hidden md:table-cell">
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                  <span className="text-sm font-bold text-blue-600">
-                                    {bill.table_no?.replace('Table ', '') || "N/A"}
+                                <div className="w-6 h-6 md:w-8 md:h-8 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                                  <span className="text-xs md:text-sm font-bold text-gray-700">
+                                    {bill.table_no?.replace('Table ', '') || "TA"}
                                   </span>
                                 </div>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-gray-900 text-sm">
                                   {bill.table_no || "Takeaway"}
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <div className="space-y-1 max-w-[200px]">
-                                {Array.isArray(bill.items) ? bill.items.slice(0, 2).map((item) => (
-                                  <div key={item.id} className="flex justify-between items-center text-sm">
+                            <TableCell className="py-3 md:py-4">
+                              <div className="space-y-1 max-w-[100px] md:max-w-[200px]">
+                                {Array.isArray(bill.items) ? bill.items.slice(0, 1).map((item) => (
+                                  <div key={item.id} className="flex justify-between items-center text-xs md:text-sm">
                                     <span className="text-gray-800 truncate">
                                       {item.name}
                                     </span>
-                                    <span className="text-gray-500 ml-2">
+                                    <span className="text-gray-500 ml-1 md:ml-2">
                                       ×{item.qty}
                                     </span>
                                   </div>
                                 )) : "N/A"}
-                                {Array.isArray(bill.items) && bill.items.length > 2 && (
-                                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                    +{bill.items.length - 2} more items
+                                {Array.isArray(bill.items) && bill.items.length > 1 && (
+                                  <div className="text-xs text-gray-500 bg-gray-100 px-1 md:px-2 py-1 rounded">
+                                    +{bill.items.length - 1} more items
                                   </div>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="py-3 md:py-4">
                               <div className="text-right">
-                                <span className="text-lg font-bold text-gray-900">
+                                <span className="text-sm md:text-lg font-bold text-gray-900">
                                   ₹{bill.total?.toFixed(2) || "0.00"}
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="py-3 md:py-4">
                               <Badge 
                                 variant="outline" 
-                                className={`${getStatusColor(bill.status)} border-2 font-semibold flex items-center gap-1 w-fit`}
+                                className={`${getStatusColor(bill.status)} border border-gray-300 font-medium flex items-center gap-1 w-fit text-xs md:text-sm`}
                               >
                                 {getStatusIcon(bill.status)}
                                 <span className="capitalize">{bill.status}</span>
                               </Badge>
                             </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2 justify-end">
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <TableCell className="py-3 md:py-4">
+                              <div className="flex flex-col md:flex-row gap-1 md:gap-2 justify-end">
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                                   <Button
                                     size="sm"
                                     onClick={() => handleSendBill(bill.id)}
                                     disabled={sendingBill === bill.id}
                                     variant="outline"
-                                    className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                                    className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs md:text-sm w-full md:w-auto"
                                   >
                                     {sendingBill === bill.id ? (
-                                      <div className="flex items-center">
+                                      <div className="flex items-center justify-center">
                                         <motion.div
                                           animate={{ rotate: 360 }}
                                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                          className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full mr-2"
+                                          className="w-3 h-3 border-2 border-gray-600 border-t-transparent rounded-full mr-1"
                                         />
                                         Sending...
                                       </div>
                                     ) : (
                                       <>
-                                        <Send className="w-4 h-4 mr-1" />
-                                        Send Bill
+                                        <Send className="w-3 h-3 md:w-4 h-4 mr-1" />
+                                        <span className="hidden md:inline">Send Bill</span>
+                                        <span className="md:hidden">Send</span>
                                       </>
                                     )}
                                   </Button>
                                 </motion.div>
                                 
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                                   <Button
                                     size="sm"
                                     onClick={() => handleMarkPaid(bill.id)}
                                     disabled={markingPaid === bill.id || bill.status !== 'completed'}
                                     className={`${
                                       bill.status === 'completed' 
-                                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg' 
+                                        ? 'bg-gray-800 hover:bg-gray-900 text-white' 
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    } border-0 font-semibold`}
+                                    } text-xs md:text-sm w-full md:w-auto`}
                                   >
                                     {markingPaid === bill.id ? (
-                                      <div className="flex items-center">
+                                      <div className="flex items-center justify-center">
                                         <motion.div
                                           animate={{ rotate: 360 }}
                                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                                          className="w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-1"
                                         />
                                         Processing...
                                       </div>
                                     ) : (
                                       <>
-                                        <CreditCard className="w-4 h-4 mr-1" />
+                                        <CreditCard className="w-3 h-3 md:w-4 h-4 mr-1" />
                                         {bill.status === 'completed' ? 'Mark Paid' : 'Not Ready'}
                                       </>
                                     )}
@@ -424,35 +424,35 @@ export default function BillingPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="flex justify-between items-center pt-6 border-t border-gray-200"
+          className="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 md:pt-6 border-t border-gray-200"
         >
-          <div className="text-sm text-gray-600">
+          <div className="text-xs md:text-sm text-gray-600">
             <span className="font-semibold">{unpaidBills.length}</span> unpaid bills • 
-            Total outstanding: <span className="font-bold text-purple-600">₹{totalUnpaidAmount.toFixed(2)}</span>
+            Total outstanding: <span className="font-bold text-gray-800">₹{totalUnpaidAmount.toFixed(2)}</span>
           </div>
           
-          <div className="flex gap-3">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <div className="flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
               <Button
                 variant="outline"
                 onClick={() => unpaidBills.forEach(bill => {
                   if (bill.status === 'completed') handleSendBill(bill.id)
                 })}
                 disabled={unpaidBills.filter(bill => bill.status === 'completed').length === 0}
-                className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 w-full text-xs md:text-sm"
               >
-                <Mail className="w-4 h-4 mr-2" />
+                <Mail className="w-3 h-3 md:w-4 h-4 mr-1" />
                 Send All Bills
               </Button>
             </motion.div>
             
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
               <Button
                 onClick={() => fetchOrders()}
                 variant="outline"
-                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 w-full text-xs md:text-sm"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-3 h-3 md:w-4 h-4 mr-1" />
                 Refresh Bills
               </Button>
             </motion.div>

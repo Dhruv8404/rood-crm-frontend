@@ -1,7 +1,7 @@
 "use client"
 
 import { useApp } from "@/context/app-context"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,7 +15,8 @@ import {
   ShoppingBag,
   CreditCard,
   Sparkles,
-  ChefHat
+  ChefHat,
+  Table
 } from "lucide-react"
 
 export default function CartPage() {
@@ -59,7 +60,7 @@ export default function CartPage() {
   }
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
+    <section className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 md:py-8 px-3 md:px-4">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -67,39 +68,44 @@ export default function CartPage() {
         className="mx-auto max-w-4xl"
       >
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="mb-6 md:mb-8">
+          <div className="flex items-center gap-3 md:gap-4 mb-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate(-1)}
-                className="rounded-full border-2 border-purple-200 bg-white/80 backdrop-blur-sm hover:bg-white"
+                className="rounded-full border border-gray-300 bg-white hover:bg-gray-50 p-2"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </motion.div>
 
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-white/80 backdrop-blur-sm p-3 shadow-lg border border-purple-200">
-                  <ShoppingCart className="h-6 w-6 text-purple-600" />
-                </div>
-
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Your Cart
-                </h1>
-
-                <Badge variant="secondary" className="bg-white/80 backdrop-blur-sm border-0 text-lg px-4 py-2 shadow-lg">
-                  {totalItems} {totalItems === 1 ? "item" : "items"}
-                </Badge>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="rounded-lg md:rounded-xl bg-white p-2 md:p-3 shadow border border-gray-200">
+                <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 text-gray-700" />
               </div>
 
-              <p className="mt-2 text-lg text-muted-foreground">
-                Review your delicious selections before ordering
-              </p>
+              <h1 className="text-xl md:text-4xl font-bold text-gray-900">
+                Your Cart
+              </h1>
+
+              <Badge variant="secondary" className="bg-white border border-gray-300 text-sm md:text-lg px-3 py-1 md:px-4 md:py-2">
+                {totalItems} {totalItems === 1 ? "item" : "items"}
+              </Badge>
             </div>
           </div>
+
+          <p className="text-sm md:text-lg text-gray-600">
+            Review your delicious selections before ordering
+          </p>
+          
+          {state.currentTable && (
+            <div className="mt-3 flex items-center gap-2 text-sm md:text-base">
+              <Table className="h-4 w-4 text-gray-600" />
+              <span className="text-gray-700">Table: {state.currentTable}</span>
+            </div>
+          )}
         </div>
 
         <AnimatePresence mode="wait">
@@ -112,30 +118,29 @@ export default function CartPage() {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.5 }}
             >
-              <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-purple-50/50 backdrop-blur-sm">
-                <CardContent className="p-12 text-center">
+              <Card className="border border-gray-200 shadow bg-white">
+                <CardContent className="p-6 md:p-12 text-center">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring" }}
-                    className="mx-auto mb-6 h-24 w-24 flex items-center justify-center rounded-full bg-purple-100"
+                    className="mx-auto mb-4 md:mb-6 h-16 w-16 md:h-24 md:w-24 flex items-center justify-center rounded-full bg-gray-100"
                   >
-                    <ShoppingBag className="h-12 w-12 text-purple-600" />
+                    <ShoppingBag className="h-8 w-8 md:h-12 md:w-12 text-gray-600" />
                   </motion.div>
 
-                  <h3 className="mb-4 text-2xl font-semibold text-gray-800">Your cart is empty</h3>
+                  <h3 className="mb-2 md:mb-4 text-lg md:text-2xl font-semibold text-gray-800">Your cart is empty</h3>
 
-                  <p className="mb-8 text-lg text-muted-foreground max-w-md mx-auto">
+                  <p className="mb-6 md:mb-8 text-sm md:text-lg text-gray-600 max-w-md mx-auto">
                     Looks like you haven't added anything yet. Let's fix that!
                   </p>
 
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       onClick={() => navigate("/menu")}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg px-8 py-6 text-lg font-semibold rounded-2xl"
-                      size="lg"
+                      className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 md:px-8 md:py-6 text-sm md:text-base font-medium w-full md:w-auto"
                     >
-                      <ChefHat className="w-5 h-5 mr-2" />
+                      <ChefHat className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                       Explore Menu
                     </Button>
                   </motion.div>
@@ -149,9 +154,9 @@ export default function CartPage() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="grid gap-6 lg:grid-cols-3"
+              className="grid gap-4 md:gap-6 lg:grid-cols-3"
             >
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-2 space-y-3 md:space-y-4">
                 <AnimatePresence mode="popLayout">
                   {state.cart.map((item) => (
                     <motion.div
@@ -161,40 +166,40 @@ export default function CartPage() {
                       animate="visible"
                       exit="exit"
                       layout
-                      className="rounded-2xl border border-purple-200 bg-white/80 backdrop-blur-sm p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="rounded-lg md:rounded-xl border border-gray-200 bg-white p-4 md:p-6 shadow hover:shadow-md transition-all duration-300"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
                         <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.name}</h3>
-                              <p className="text-lg font-medium text-purple-600 mb-3">₹{item.price.toFixed(2)}</p>
+                          <div className="flex flex-col md:flex-row md:items-start justify-between">
+                            <div className="mb-3 md:mb-0">
+                              <h3 className="text-base md:text-xl font-semibold text-gray-800 mb-1 md:mb-2 truncate">{item.name}</h3>
+                              <p className="text-sm md:text-lg font-medium text-gray-700">₹{item.price.toFixed(2)}</p>
                             </div>
 
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground mb-2">Subtotal</p>
-                              <p className="text-lg font-bold text-gray-800">
+                            <div className="text-left md:text-right">
+                              <p className="text-xs md:text-sm text-gray-600 mb-1 md:mb-2">Subtotal</p>
+                              <p className="text-base md:text-lg font-bold text-gray-800">
                                 ₹{(item.price * item.qty).toFixed(2)}
                               </p>
                             </div>
                           </div>
 
                           {/* QTY + REMOVE */}
-                          <div className="flex items-center gap-4 mt-4">
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-medium text-gray-600">Quantity:</span>
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-3 md:mt-4">
+                            <div className="flex items-center gap-2 md:gap-3">
+                              <span className="text-xs md:text-sm font-medium text-gray-600">Quantity:</span>
 
-                              <div className="flex items-center gap-2 bg-white rounded-full p-1 shadow-inner border">
+                              <div className="flex items-center gap-1 md:gap-2 bg-white rounded-lg p-1 border border-gray-300">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => updateQty(item.id, item.qty - 1)}
-                                  className="h-8 w-8 rounded-full p-0 hover:bg-red-50 hover:text-red-600"
+                                  className="h-6 w-6 md:h-8 md:w-8 rounded p-0 hover:bg-gray-100"
                                 >
-                                  <Minus className="h-3 w-3" />
+                                  <Minus className="h-2 w-2 md:h-3 md:w-3" />
                                 </Button>
 
-                                <span className="w-8 text-center font-semibold text-gray-800">
+                                <span className="w-6 md:w-8 text-center font-semibold text-gray-800 text-sm md:text-base">
                                   {item.qty}
                                 </span>
 
@@ -202,22 +207,22 @@ export default function CartPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => updateQty(item.id, item.qty + 1)}
-                                  className="h-8 w-8 rounded-full p-0 hover:bg-green-50 hover:text-green-600"
+                                  className="h-6 w-6 md:h-8 md:w-8 rounded p-0 hover:bg-gray-100"
                                 >
-                                  <Plus className="h-3 w-3" />
+                                  <Plus className="h-2 w-2 md:h-3 md:w-3" />
                                 </Button>
                               </div>
                             </div>
 
                             {/* Remove */}
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                               <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => removeFromCart(item.id)}
-                                className="rounded-full px-4 py-2 gap-2"
+                                className="rounded px-3 py-1 md:px-4 md:py-2 gap-1 md:gap-2 text-xs md:text-sm"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                                 Remove
                               </Button>
                             </motion.div>
@@ -230,11 +235,11 @@ export default function CartPage() {
 
                 {/* Clear Cart */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       onClick={clearCart}
                       variant="outline"
-                      className="rounded-xl border-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 px-6 py-3 font-semibold"
+                      className="rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 md:px-6 md:py-3 font-medium w-full md:w-auto text-sm md:text-base"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Clear Entire Cart
@@ -250,51 +255,50 @@ export default function CartPage() {
                 transition={{ delay: 0.3 }}
                 className="lg:sticky lg:top-6 h-fit"
               >
-                <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-blue-50/50 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                    <CardTitle className="text-2xl flex items-center gap-3">
-                      <CreditCard className="h-6 w-6" />
+                <Card className="border border-gray-200 shadow bg-white">
+                  <CardHeader className="bg-gray-800 text-white p-4 md:p-6">
+                    <CardTitle className="text-lg md:text-2xl flex items-center gap-2 md:gap-3">
+                      <CreditCard className="h-5 w-5 md:h-6 md:w-6" />
                       Order Summary
                     </CardTitle>
                   </CardHeader>
 
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 md:p-6">
                     {/* Price Breakdown */}
-                    <div className="space-y-4 mb-6">
+                    <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
                       <div className="flex justify-between py-2">
-                        <span className="text-gray-600">Items ({totalItems})</span>
-                        <span className="font-semibold">₹{total.toFixed(2)}</span>
+                        <span className="text-gray-600 text-sm md:text-base">Items ({totalItems})</span>
+                        <span className="font-semibold text-sm md:text-base">₹{total.toFixed(2)}</span>
                       </div>
 
                       <div className="flex justify-between py-2 border-t border-gray-200">
-                        <span className="text-gray-600">Service Charge</span>
-                        <span className="font-semibold">₹{(total * 0.1).toFixed(2)}</span>
+                        <span className="text-gray-600 text-sm md:text-base">Service Charge</span>
+                        <span className="font-semibold text-sm md:text-base">₹{(total * 0.1).toFixed(2)}</span>
                       </div>
 
                       <div className="flex justify-between py-2 border-t border-gray-200">
-                        <span className="text-gray-600">GST</span>
-                        <span className="font-semibold">₹{(total * 0.05).toFixed(2)}</span>
+                        <span className="text-gray-600 text-sm md:text-base">GST</span>
+                        <span className="font-semibold text-sm md:text-base">₹{(total * 0.05).toFixed(2)}</span>
                       </div>
 
-                      <div className="flex justify-between py-4 border-t-2 border-gray-300">
-                        <span className="text-xl font-bold text-gray-800">Total Amount</span>
-                        <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      <div className="flex justify-between py-3 md:py-4 border-t-2 border-gray-300">
+                        <span className="text-base md:text-xl font-bold text-gray-800">Total Amount</span>
+                        <span className="text-lg md:text-2xl font-bold text-gray-900">
                           ₹{(total * 1.15).toFixed(2)}
                         </span>
                       </div>
                     </div>
 
                     {/* Checkout */}
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                       <Button
                         onClick={() => {
                           if (!state.currentTable) navigate("/")
                           else handleCheckout()
                         }}
-                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg py-6 text-lg font-semibold rounded-2xl"
-                        size="lg"
+                        className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 md:py-4 text-sm md:text-base font-medium rounded-lg"
                       >
-                        <CreditCard className="w-5 h-5 mr-2" />
+                        <CreditCard className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                         {state.currentTable ? "Proceed to Checkout" : "Select Table to Continue"}
                       </Button>
                     </motion.div>
@@ -303,10 +307,9 @@ export default function CartPage() {
                     <Button
                       onClick={() => navigate("/menu")}
                       variant="outline"
-                      className="w-full rounded-xl border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700 py-6 text-lg font-semibold mt-3"
-                      size="lg"
+                      className="w-full rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 md:py-4 text-sm md:text-base font-medium mt-2 md:mt-3"
                     >
-                      <ChefHat className="w-5 h-5 mr-2" />
+                      <ChefHat className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                       Add More Items
                     </Button>
 
@@ -315,13 +318,13 @@ export default function CartPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.8 }}
-                      className="mt-6 p-4 bg-blue-50/50 rounded-xl border border-blue-200"
+                      className="mt-4 md:mt-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200"
                     >
-                      <div className="flex items-center gap-2 text-sm text-blue-600">
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
                         <Sparkles className="h-4 w-4" />
                         <span className="font-medium">Fast Delivery</span>
                       </div>
-                      <p className="text-xs text-blue-600/80 mt-1">
+                      <p className="text-xs text-gray-600 mt-1">
                         Your delicious food will be prepared fresh and served hot!
                       </p>
                     </motion.div>
