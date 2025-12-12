@@ -124,38 +124,82 @@ export default function AdminQR() {
 
   // Generate QR codes
   const generateQR = useCallback(async () => {
-    if (!checkAuth()) return
+  if (!checkAuth()) return;
 
-    setGenerating(true)
-    try {
-      const body = { range: rangeInput.trim() || '1' }
-      const response = await fetch(`${API_BASE}tables/generate/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${state.token}`,
-        },
-        body: JSON.stringify(body),
-      })
+  setGenerating(true);
 
-      if (response.ok) {
-        const data: QRData[] = await response.json()
-        setQrData(prev => [...prev, ...data])
-        setRangeInput('1')
-        showNotification('success', `Generated ${data.length} QR code(s) successfully`)
-      } else if (response.status === 401 || response.status === 403) {
-        showNotification('error', 'Session expired. Please log in again.')
-      } else {
-        const error = await response.json()
-        showNotification('error', error.error || 'Failed to generate QR codes')
-      }
-    } catch (error) {
-      console.error('Error generating QR codes:', error)
-      showNotification('error', 'Error generating QR codes')
-    } finally {
-      setGenerating(false)
+  try {
+    let body: any = {};
+
+    const value = rangeInput.trim();
+
+    // CASE 1: Simple count input → "3"
+    if (/^\d+$/.test(value)) {
+      body = { count: parseInt(value) };
     }
-  }, [checkAuth, rangeInput, state.token, showNotification])
+
+    // CASE 2: Range input → "T1-T5"
+    else if (/^T\d+\s*-\s*T\d+$/i.test(value)) {
+      const [start, end] = value.split("-");
+      const startNum = parseInt(start.replace("T", ""));
+      const endNum = parseInt(end.replace("T", ""));
+
+      body = {
+        tables: Array.from(
+          { length: endNum - startNum + 1 },
+          (_, i) => `T${String(startNum + i).padStart(2, "0")}`
+        ),
+      };
+    }
+
+    // CASE 3: Single table → "T1"
+    else if (/^T\d+$/i.test(value)) {
+      const num = value.replace("T", "");
+      body = { tables: [`T${String(num).padStart(2, "0")}`] };
+    }
+
+    // CASE 4: Multiple comma-separated → "T1,T3,T7"
+    else if (/^T\d+(,\s*T\d+)*$/i.test(value)) {
+      const tables = value.split(",").map(t => {
+        const num = t.replace("T", "").trim();
+        return `T${String(num).padStart(2, "0")}`;
+      });
+      body = { tables };
+    }
+
+    // INVALID INPUT
+    else {
+      showNotification("error", "Invalid table format");
+      setGenerating(false);
+      return;
+    }
+
+    const response = await fetch(`${API_BASE}tables/generate/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${state.token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (response.ok) {
+      const data: QRData[] = await response.json();
+      setQrData(prev => [...prev, ...data]);
+      setRangeInput("");
+      showNotification("success", `Generated ${data.length} QR code(s) successfully`);
+    } else {
+      const error = await response.json();
+      showNotification("error", error.error || "Failed to generate QR codes");
+    }
+
+  } catch (err) {
+    console.error("QR generate error:", err);
+    showNotification("error", "Error generating QR codes");
+  }
+
+  setGenerating(false);
+}, [checkAuth, rangeInput, state.token, showNotification]);
 
   // Download single QR code
   const downloadQR = useCallback(async (index: number) => {
