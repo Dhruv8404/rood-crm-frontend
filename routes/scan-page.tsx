@@ -1,29 +1,28 @@
-import { useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { useEffect } from "react"
 import { API_BASE } from "@/config/api"
-import { useApp } from "@/context/app-context"
 
 export default function ScanPage() {
   const { table_no, hash } = useParams()
   const navigate = useNavigate()
-  const { setCurrentTable } = useApp()
 
   useEffect(() => {
     if (!table_no || !hash) return
 
-    fetch(`${API_BASE}/api/tables/verify/${table_no}/${hash}/`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.valid) {
-          navigate("/invalid-qr")
-          return
-        }
-
-        setCurrentTable(table_no)
+    // OPTIONAL: verify table with backend
+    fetch(`${API_BASE}tables/verify/${table_no}/${hash}/`)
+      .then(res => {
+        if (!res.ok) throw new Error("Invalid QR")
+        return res.json()
+      })
+      .then(() => {
+        localStorage.setItem("table_no", table_no)
         navigate("/menu")
       })
-      .catch(() => navigate("/invalid-qr"))
-  }, [])
+      .catch(() => {
+        alert("Invalid or expired QR code")
+      })
+  }, [table_no, hash])
 
-  return <p>Scanning QR…</p>
+  return <p className="text-center mt-20">Scanning QR…</p>
 }
