@@ -42,8 +42,10 @@ import {
 interface QRData {
   table_no: string
   hash: string
-  url: string
+  scan_url: string  // new field
+  qr_code_url?: string
 }
+
 
 export default function AdminQR() {
   const { state, logout } = useApp()
@@ -68,6 +70,7 @@ export default function AdminQR() {
     setNotification({ type, message })
     setTimeout(() => setNotification(null), 5000)
   }, [])
+
 
   // Check authentication
   const checkAuth = useCallback(() => {
@@ -241,10 +244,11 @@ export default function AdminQR() {
 
     try {
       const response = await fetch(`${API_BASE}tables/${table_no}/delete/`, {
-        headers: {
-          'Authorization': `Bearer ${state.token}`,
-        },
-      })
+  method: "DELETE",
+  headers: { Authorization: `Bearer ${state.token}` }
+})
+
+
 
       if (response.ok) {
         setQrData(prev => prev.filter((_, i) => i !== index))
@@ -317,40 +321,48 @@ export default function AdminQR() {
   }, [selectedTables, qrData.length])
 
   // Delete selected tables
-  const deleteSelectedTables = useCallback(async () => {
-    if (selectedTables.size === 0) {
-      showNotification('error', 'Please select tables to delete.')
-      return
-    }
+const deleteSelectedTables = useCallback(async () => {
+  if (selectedTables.size === 0) {
+    showNotification('error', 'Please select tables to delete.')
+    return
+  }
 
-    if (!confirm(`Are you sure you want to delete ${selectedTables.size} selected table(s)? This action cannot be undone.`)) return
+  if (
+    !confirm(
+      `Are you sure you want to delete ${selectedTables.size} selected table(s)?`
+    )
+  )
+    return
 
-    try {
-      const deletePromises = Array.from(selectedTables).map(index => {
-        const table_no = qrData[index].table_no
-        return fetch(`${API_BASE}tables/${table_no}/delete/`, {
-          headers: {
-            'Authorization': `Bearer ${state.token}`,
-          },
-        })
+  try {
+    const deletePromises = Array.from(selectedTables).map((index) => {
+      const table_no = qrData[index].table_no
+      return fetch(`${API_BASE}tables/${table_no}/delete/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${state.token}`,
+        },
       })
+    })
 
-      const results = await Promise.all(deletePromises)
-      const failed = results.filter(res => !res.ok).length
+    const results = await Promise.all(deletePromises)
+    const failed = results.filter((res) => !res.ok).length
 
-      if (failed === 0) {
-        setQrData(prev => prev.filter((_, index) => !selectedTables.has(index)))
-        setSelectedTables(new Set())
-        setSelectAll(false)
-        showNotification('success', `Deleted ${selectedTables.size} table(s) successfully`)
-      } else {
-        showNotification('error', `Failed to delete ${failed} table(s)`)
-      }
-    } catch (error) {
-      console.error('Error deleting tables:', error)
-      showNotification('error', 'Error deleting tables')
+    if (failed === 0) {
+      setQrData((prev) =>
+        prev.filter((_, index) => !selectedTables.has(index))
+      )
+      setSelectedTables(new Set())
+      setSelectAll(false)
+      showNotification('success', 'Selected tables deleted successfully')
+    } else {
+      showNotification('error', `${failed} table(s) failed to delete`)
     }
-  }, [selectedTables, qrData, state.token, showNotification])
+  } catch (error) {
+    console.error(error)
+    showNotification('error', 'Error deleting tables')
+  }
+}, [selectedTables, qrData, state.token, showNotification])
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 md:py-8 px-3 md:px-4">
@@ -630,7 +642,8 @@ export default function AdminQR() {
                                   <LinkIcon className="w-3 h-3 md:w-4 h-4 text-gray-500" />
                                   <span
                                     className="text-xs text-gray-600 hover:text-gray-800 cursor-pointer truncate max-w-[150px]"
-                                    onClick={() => window.open(qr.url, '_blank')}
+                                    onClick={() => window.open(qr.scan_url, '_blank')}
+
                                     title={qr.url}
                                   >
                                     {qr.url}

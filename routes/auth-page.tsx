@@ -85,10 +85,11 @@ export default function AuthPage() {
     setError("")
     try {
       const res = await fetch(`${API_BASE}auth/customer/verify/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp, email })
-      })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ otp, email })
+  })
+
       if (res.ok) {
         const data = await res.json()
         loginCustomer(phone, email, data.token)
@@ -289,8 +290,9 @@ export default function AuthPage() {
                       required
                     />
                     <p className="text-sm text-gray-600 mt-2">
-                      OTP sent to <span className="font-semibold">{phone}</span>
-                    </p>
+  OTP sent to <span className="font-semibold">{email}</span>
+</p>
+
                   </div>
                 </div>
 
