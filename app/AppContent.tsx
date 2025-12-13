@@ -31,6 +31,7 @@ function AppContentInner() {
           <main className="mx-auto max-w-6xl px-4 py-6">
           <Routes>
             <Route path="/" element={<ScanPage />} />
+            <Route path="/scan/:table_no/:hash" element={<ScanPage />} />
             <Route path="/:hash/:table" element={<ScanPage />} />
             <Route path="/table/:table" element={<ScanPage />} />
             <Route path="/menu" element={<MenuPage />} />
