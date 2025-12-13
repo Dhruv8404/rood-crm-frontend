@@ -127,17 +127,46 @@ export default function AdminQR() {
 
   // Generate QR codes
 const generateQR = useCallback(async () => {
-  if (!checkAuth()) return;
+  if (!checkAuth()) return
 
-  setGenerating(true);
+  setGenerating(true)
 
   try {
-    const value = rangeInput.trim();
+    const value = rangeInput.trim()
+    let body: any = {}
 
-    if (!value) {
-      showNotification("error", "Range is required");
-      setGenerating(false);
-      return;
+    // CASE 1: only number → count
+    if (/^\d+$/.test(value)) {
+      body = { count: parseInt(value) }
+    }
+    // CASE 2: T1-T5
+    else if (/^T\d+\s*-\s*T\d+$/i.test(value)) {
+      const [start, end] = value.split("-")
+      const s = parseInt(start.replace("T", ""))
+      const e = parseInt(end.replace("T", ""))
+
+      body = {
+        tables: Array.from({ length: e - s + 1 }, (_, i) =>
+          `T${String(s + i).padStart(2, "0")}`
+        ),
+      }
+    }
+    // CASE 3: single T1
+    else if (/^T\d+$/i.test(value)) {
+      const n = value.replace("T", "")
+      body = { tables: [`T${String(n).padStart(2, "0")}`] }
+    }
+    // CASE 4: T1,T3,T5
+    else if (/^T\d+(,\s*T\d+)*$/i.test(value)) {
+      body = {
+        tables: value.split(",").map(t =>
+          `T${String(t.replace("T", "").trim()).padStart(2, "0")}`
+        ),
+      }
+    } else {
+      showNotification("error", "Invalid table format")
+      setGenerating(false)
+      return
     }
 
     const response = await fetch(`${API_BASE}tables/generate/`, {
@@ -146,29 +175,26 @@ const generateQR = useCallback(async () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${state.token}`,
       },
-      body: JSON.stringify({
-        range: value,   // ✅ THIS IS THE FIX
-      }),
-    });
+      body: JSON.stringify(body),
+    })
 
-    const data = await response.json();
+    const data = await response.json()
 
     if (!response.ok) {
-      showNotification("error", data.error || "Failed to generate QR");
-      return;
+      showNotification("error", data.error || "Failed to generate QR")
+      return
     }
 
-    setQrData((prev) => [...prev, ...data]);
-    setRangeInput("");
-    showNotification("success", `Generated ${data.length} QR code(s)`);
-
-  } catch (error) {
-    console.error(error);
-    showNotification("error", "QR generation failed");
+    setQrData(prev => [...prev, ...data])
+    setRangeInput("")
+    showNotification("success", `Generated ${data.length} QR codes`)
+  } catch (err) {
+    console.error(err)
+    showNotification("error", "QR generation failed")
   } finally {
-    setGenerating(false);
+    setGenerating(false)
   }
-}, [rangeInput, state.token, checkAuth, showNotification]);
+}, [rangeInput, state.token, checkAuth, showNotification])
 
   // Download single QR code
   const downloadQR = useCallback(async (index: number) => {
@@ -610,9 +636,9 @@ const deleteSelectedTables = useCallback(async () => {
                                     className="text-xs text-gray-600 hover:text-gray-800 cursor-pointer truncate max-w-[150px]"
                                     onClick={() => window.open(qr.scan_url, '_blank')}
 
-                                    title={qr.url}
+                                    title={qr.scan_url}
                                   >
-                                    {qr.url}
+                                    {qr.scan_url}
                                   </span>
                                 </div>
                               </TableCell>
@@ -621,17 +647,16 @@ const deleteSelectedTables = useCallback(async () => {
                                   ref={(el) => { qrRefs.current[index] = el }}
                                   className="flex justify-center p-1 md:p-2 bg-white rounded border border-gray-200"
                                 >
-                                  {qr.url ? (
-                                    <QRCode
-                                      value={qr.url}
-                                      size={60}
-                                      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                                    />
-                                  ) : (
-                                    <div className="flex items-center justify-center w-15 h-15 md:w-20 md:h-20 bg-gray-100 rounded">
-                                      <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />
-                                    </div>
-                                  )}
+                                 {qr.scan_url ? (
+  <QRCode
+    value={qr.scan_url}
+    size={60}
+    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+  />
+) : (
+  <AlertCircle className="w-6 h-6 text-gray-400" />
+)}
+
                                 </div>
                               </TableCell>
                               <TableCell className="py-2 md:py-4">
@@ -664,7 +689,7 @@ const deleteSelectedTables = useCallback(async () => {
                                         <Button
                                           size="sm"
                                           variant="outline"
-                                          onClick={() => window.open(qr.url, '_blank')}
+                                          onClick={() => window.open(qr.scan_url, '_blank')}
                                           className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs"
                                         >
                                           <Scan className="w-3 h-3" />
@@ -765,9 +790,9 @@ const deleteSelectedTables = useCallback(async () => {
 
                         {/* QR Code Display */}
                         <div className="flex justify-center p-2 md:p-3 bg-white rounded-lg border border-gray-100">
-                          {qr.url ? (
+                          {qr.scan_url ? (
                             <QRCode
-                              value={qr.url}
+                              value={qr.scan_url}
                               size={80}
                               style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                             />
@@ -788,7 +813,7 @@ const deleteSelectedTables = useCallback(async () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(qr.url, '_blank')}
+                            onClick={() => window.open(qr.scan_url, '_blank')}
                             className="h-7 md:h-8 px-2 text-xs border-gray-300 text-gray-700 hover:bg-gray-50 w-full"
                           >
                             <Scan className="w-3 h-3 mr-1" />
