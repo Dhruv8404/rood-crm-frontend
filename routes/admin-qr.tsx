@@ -126,53 +126,16 @@ export default function AdminQR() {
   }, [checkAuth, state.token, showNotification])
 
   // Generate QR codes
-  const generateQR = useCallback(async () => {
+const generateQR = useCallback(async () => {
   if (!checkAuth()) return;
 
   setGenerating(true);
 
   try {
-    let body: any = {};
-
     const value = rangeInput.trim();
 
-    // CASE 1: Simple count input → "3"
-    if (/^\d+$/.test(value)) {
-      body = { count: parseInt(value) };
-    }
-
-    // CASE 2: Range input → "T1-T5"
-    else if (/^T\d+\s*-\s*T\d+$/i.test(value)) {
-      const [start, end] = value.split("-");
-      const startNum = parseInt(start.replace("T", ""));
-      const endNum = parseInt(end.replace("T", ""));
-
-      body = {
-        tables: Array.from(
-          { length: endNum - startNum + 1 },
-          (_, i) => `T${String(startNum + i).padStart(2, "0")}`
-        ),
-      };
-    }
-
-    // CASE 3: Single table → "T1"
-    else if (/^T\d+$/i.test(value)) {
-      const num = value.replace("T", "");
-      body = { tables: [`T${String(num).padStart(2, "0")}`] };
-    }
-
-    // CASE 4: Multiple comma-separated → "T1,T3,T7"
-    else if (/^T\d+(,\s*T\d+)*$/i.test(value)) {
-      const tables = value.split(",").map(t => {
-        const num = t.replace("T", "").trim();
-        return `T${String(num).padStart(2, "0")}`;
-      });
-      body = { tables };
-    }
-
-    // INVALID INPUT
-    else {
-      showNotification("error", "Invalid table format");
+    if (!value) {
+      showNotification("error", "Range is required");
       setGenerating(false);
       return;
     }
@@ -183,26 +146,29 @@ export default function AdminQR() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${state.token}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        range: value,   // ✅ THIS IS THE FIX
+      }),
     });
 
-    if (response.ok) {
-      const data: QRData[] = await response.json();
-      setQrData(prev => [...prev, ...data]);
-      setRangeInput("");
-      showNotification("success", `Generated ${data.length} QR code(s) successfully`);
-    } else {
-      const error = await response.json();
-      showNotification("error", error.error || "Failed to generate QR codes");
+    const data = await response.json();
+
+    if (!response.ok) {
+      showNotification("error", data.error || "Failed to generate QR");
+      return;
     }
 
-  } catch (err) {
-    console.error("QR generate error:", err);
-    showNotification("error", "Error generating QR codes");
-  }
+    setQrData((prev) => [...prev, ...data]);
+    setRangeInput("");
+    showNotification("success", `Generated ${data.length} QR code(s)`);
 
-  setGenerating(false);
-}, [checkAuth, rangeInput, state.token, showNotification]);
+  } catch (error) {
+    console.error(error);
+    showNotification("error", "QR generation failed");
+  } finally {
+    setGenerating(false);
+  }
+}, [rangeInput, state.token, checkAuth, showNotification]);
 
   // Download single QR code
   const downloadQR = useCallback(async (index: number) => {
